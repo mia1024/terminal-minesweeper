@@ -107,7 +107,10 @@ class UIManager:
         self.mwin.erase()
         mouse_button = -1
         if ch == curses.KEY_MOUSE:
-            _, self.mouse_x, self.mouse_y, z, mouse_button = curses.getmouse()
+            try:
+                _, self.mouse_x, self.mouse_y, z, mouse_button = curses.getmouse()
+            except curses.error:
+                pass
         cell_width = config.use_emojis + 1
         
         self.mwin.addch(self.mouse_y, self.mouse_x, curses.ACS_DIAMOND)
@@ -185,7 +188,8 @@ def main():
                      )
     curses.mouseinterval(0)  # don't wait for mouse
     curses.curs_set(0)  # invisible cursor
-    print('\033[?1003h')  # enable mouse tracking with the XTERM API
+    print('\033[?1003h',flush=True)  
+    # enable mouse tracking with the XTERM API
     # https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking
     
     curses.start_color()
@@ -202,6 +206,7 @@ def main():
         exit_message = traceback.format_exc()
         exit_status = 1
     finally:
+        print('\033[?1003l',flush=True)  
         stdscr.keypad(False)
         curses.nocbreak()
         curses.echo()

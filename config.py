@@ -16,6 +16,7 @@ class Config(metaclass=SingletonMeta):
         self.board_width = 16
         self.board_height = 16
         self.mine_count = 10
+        self.silent_check = True
 
 
 config = Config()
