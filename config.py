@@ -21,7 +21,7 @@ class Config(metaclass=SingletonMeta):
         self.mine_count = 40
         self.silent_checks = False
         self.ignore_failures = False
-        self.show_startup_animation = True
+        self.show_animation = True
 
 
 config = Config()
@@ -39,10 +39,10 @@ group.add_argument('-c', '--custom', nargs=3, type=int, metavar=('width', 'heigh
 
 g.add_argument('--silent-checks', action='store_true',
                help='Performs the initial system checks quickly and quietly.')
-g.add_argument('--no-startup-animation', action='store_true',
-               help='Skip the startup animation and starts the game'
-                    'directly. May cause a significant screen flicker when the'
-                    'program starts.')
+g.add_argument('--no-animation', action='store_true',
+               help='Skip the startup and closing animations.'
+                    'May cause a significant screen flicker when the program '
+                    'starts.')
 g.add_argument('--ignore-failures', action='store_true',
                help='Ignore all failures in the initial system checks. Not recommended.')
 
@@ -55,7 +55,7 @@ if args.help:
 
 config.ignore_failures = args.ignore_failures
 config.silent_checks = args.silent_checks
-config.show_startup_animation = not args.no_startup_animation
+config.show_animation = not args.no_animation
 
 if args.easy:
     config.board_width = 9
