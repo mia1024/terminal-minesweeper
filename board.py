@@ -1,5 +1,8 @@
-from config import config
+from config import Config
 from enum import IntFlag, auto
+import random
+
+config = Config()
 
 
 class State(IntFlag):
@@ -15,55 +18,102 @@ EXPLODED = State.EXPLODED
 MINE = State.MINE
 HIGHLIGHT = State.HIGHLIGHT
 FLAGGED = State.FLAGGED
-R = State.REVEALED
-E = State.EXPLODED
-M = State.MINE
-H = State.HIGHLIGHT
-F = State.FLAGGED
 
 
 # yes i could have used a globals().update but my IDE isn't happy with that :(
 
+
+# class CellMeta(type):
+#     def __init__(cls,*args,**kwargs):
+#         super().__init__(*args,**kwargs)
+#         cls.__objs={}
+#
+#     def __call__(cls, *args, **kwargs):
+#         obj=super().__call__(*args,**kwargs)
+#         cls.__objs[args]=obj
+#         return obj
+#
+#     def __getitem__(self, item):
+
 class Cell:
-    def __init__(self, x, y, char=None):
+    __cells = {}
+
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.char = char or ' ' * (config.use_emojis + 1)
-        self.is_mine = False
-        self.color = 0
         self.state = State(0)
-    
+        self.value = 0
+        self.__cells[(x, y)] = self
+
     def flag(self):
-        if config.use_emojis:
-            self.char = '🚩'
-        else:
-            self.char = 'F'
-        self.state |= F
-    
+        self.state |= FLAGGED
+
     def explode(self):
-        if config.use_emojis:
-            self.char = '💥'
-        else:
-            self.char = 'O'
-        self.state |= E
-    
-    def mine(self):
-        if config.use_emojis:
-            self.char = '💣'
-        else:
-            self.char = 'X'
-        self.state |= M
+        self.state |= EXPLODED
+
+    def set_mine(self):
+        self.state |= MINE
+
+    def reveal(self):
+        self.state |= REVEALED
+
+    def __str__(self):
+        emo = config.use_emojis
+        if FLAGGED in self.state: return '🚩' if emo else 'Ｆ'
+        if EXPLODED in self.state: return '💥' if emo else 'Ｏ'
+        if MINE|REVEALED in self.state: return '💣' if emo else 'Ｘ'
+        if REVEALED in self.state and not self.value: return '　'
+        if REVEALED in self.state: return chr(0xff10 + self.value)
+        return '　'
+
+    def __repr__(self):
+        return f'<Cell {self.state}>'
+
+    def __class_getitem__(cls, item):
+        return cls.__cells[item]
+
+    def calc_value(self):
+        surroundings = (
+            (self.x + 1, self.y + 1),
+            (self.x + 1, self.y + 0),
+            (self.x + 1, self.y - 1),
+            (self.x - 1, self.y + 1),
+            (self.x - 1, self.y + 0),
+            (self.x - 1, self.y - 1),
+            (self.x + 0, self.y + 1),
+            (self.x + 0, self.y - 1),
+        )
+        for surr in surroundings:
+            try:
+                self.value += MINE in Cell[surr].state
+            except KeyError:
+                pass
 
 
 class Board:
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
+    def __init__(self):
         self._board = []
-        for x in range(width):
+        cells = []
+        for x in range(config.board_width):
             self._board.append([])
-            for y in range(height):
-                self._board[-1].append(Cell(x, y))
-    
+            for y in range(config.board_height):
+                cell = Cell(x, y)
+                self._board[-1].append(cell)
+                cells.append(cell)
+        for c in random.sample(cells, config.mine_count):
+            c.set_mine()
+
+        for c in cells:
+            c.calc_value()
+            c.reveal()
+
     def __iter__(self):
         return iter(self._board)
+
+    def __str__(self):
+        s = ''
+        for row in self._board:
+            for col in row:
+                s += str(col)
+            s += '\n'
+        return s
