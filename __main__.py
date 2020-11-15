@@ -101,7 +101,7 @@ from ui import main, calc_first_frame, FG, BG
 if not config.silent_checks:
     for i, row in enumerate(calc_first_frame(height, width)):
         print()
-        print(f'[38;5;{FG}m\033[48;5;{BG}m', end='')
+        print(f'\033[38;5;{FG}m\033[48;5;{BG}m', end='')
         print_slow(row, delay=max(0.02 / 2 ** i, 0.001), prefix=f'\033[38;5;{FG}m\033[48;5;{BG}m', suffix='\033[0m',
                    trailing_newline=False)
         print('\033[0m', end='')
