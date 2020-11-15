@@ -33,29 +33,18 @@ class Grid:
     so that the output is approximately square
     """
     
-    SPACE = '\u3000'
-    # VBAR = '\u2551'
-    # HBAR = '\u2550'
-    # TOPLEFT = '\u2554'
-    # TOPRIGHT = '\u2557'
-    # BOTTOMLEFT = '\u255a'
-    # BOTTOMRIGHT = '\u255d'
-    # LEFT = '\u2560'
-    # RIGHT = '\u2563'
-    # TOP = '\u2566'
-    # BOTTOM = '\u2569'
-    # CENTER = '\u256c'
-    VBAR = '\u2503'
-    HBAR = '\u2501'
-    TOPLEFT = '\u250f'
-    TOPRIGHT = '\u2513'
-    BOTTOMLEFT = '\u2517'
-    BOTTOMRIGHT = '\u251b'
-    LEFT = '\u2523'
-    RIGHT = '\u252b'
-    TOP = '\u2533'
-    BOTTOM = '\u253b'
-    CENTER = '\u254b'
+    VBAR = "┃"
+    HBAR = "━"
+    TOPLEFT = "┏"
+    TOPRIGHT = "┓"
+    BOTTOMLEFT = "┗"
+    BOTTOMRIGHT = "┛"
+    LEFT = "┣"
+    RIGHT = "┫"
+    TOP = "┳"
+    BOTTOM = "┻"
+    CENTER = "╋"
+    SPACE = "　"
     
     def __init__(self, width, height):
         """
@@ -172,7 +161,14 @@ def mainloop(win: curses.window):
 
 
 def calc_first_frame(height, width):
+    """
+    calculate the first frame to print for the startup animation
+    :param height: height of the screen
+    :param width: width of the screen
+    :return: a list of strings, each representing a line
+    """
     def pad(line, center=False):
+        """a simple """
         if not center: return ' │' + line + ' ' * (width - len(line) - 4) + '│ '
         return ' │' + ' ' * floor((width - len(line) - 4) / 2) + line + ' ' * ceil((width - len(line) - 4) / 2) + '│ '
     
@@ -186,8 +182,6 @@ def calc_first_frame(height, width):
         frame.append(pad(''))
     line = ' ╰' + '─' * (width - 4) + '╯ '
     frame.append(line)
-    # frame.append(' ' * width)
-    grid = Grid(config.board_width, config.board_height).render()
     return frame
 
 
@@ -239,7 +233,3 @@ def main():
         curses.echo()
         curses.endwin()
         return exit_message, exit_status
-
-
-if __name__ == '__main__':
-    main()

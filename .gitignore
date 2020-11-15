@@ -143,3 +143,5 @@ cython_debug/
 credentials.py
 images/
 test_images/
+starter.py
+starter.txt
