@@ -92,7 +92,7 @@ check(height >= min_height, 'window height',
 
 if not config.silent_checks:
     print_slow('All system checks completed （＾ω＾） ready to sweep some mines ┗(＾0＾)┓')
-    print_slow('Making a window...',trailing_newline=False)
+    print_slow('Making a window...', trailing_newline=False)
 
 from ui import main, calc_first_frame, FG, BG
 
@@ -110,5 +110,9 @@ if not config.silent_checks:
 else:
     print()
 
-signal.signal(signal.SIGINT,system_sigint_handler)
-main()
+signal.signal(signal.SIGINT, system_sigint_handler)
+exit_message, exit_status = main()
+if not config.silent_checks: print()  # to consume the last \r
+if exit_message:
+    print('\033[91m'+exit_message+'\033[0m',flush=True)
+sys.exit(exit_status)
