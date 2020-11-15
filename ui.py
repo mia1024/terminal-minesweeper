@@ -259,21 +259,21 @@ def main():
             # showing a backward erasing animation
             try:
                 height, width = stdscr.getmaxyx()
-                for y in range(height + 1):
-                    for x in range(width + 1):
-                        try:
-                            stdscr.addch(height - y, width - x, ' ', curses.color_pair(SYSTEM_DEFAULT))
-                        except curses.error:
-                            pass
-                            # writing to the last column raises an error but it works
-                        delay = max(0.02 / (height - y + 1), 0.0005)
-                        if delay>=0.001:
-                            curses.napms(floor(delay*1000))
-                        else:
-                            time.sleep(delay)
-                        curses.flushinp()
-                        curses.qiflush()
-                        stdscr.refresh()
+                # for y in range(height + 1):
+                #     for x in range(width + 1):
+                #         try:
+                #             stdscr.addch(height - y, width - x, ' ', curses.color_pair(SYSTEM_DEFAULT))
+                #         except curses.error:
+                #             pass
+                #             # writing to the last column raises an error but it works
+                #         delay = max(0.02 / (height - y + 1), 0.0005)
+                #         if delay>=0.001:
+                #             curses.napms(floor(delay*1000))
+                #         else:
+                #             time.sleep(delay)
+                #         curses.flushinp()
+                #         curses.qiflush()
+                #         stdscr.refresh()
             except:
                 exit_message = traceback.format_exc()
                 exit_status = 1

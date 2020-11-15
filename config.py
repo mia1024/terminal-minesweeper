@@ -22,6 +22,7 @@ class Config(metaclass=SingletonMeta):
         self.silent_checks = False
         self.ignore_failures = False
         self.show_animation = True
+        self.difficulty = 'intermediate'
 
 
 config = Config()
@@ -61,9 +62,12 @@ if args.easy:
     config.board_width = 9
     config.board_height = 9
     config.mine_count = 10
+    config.difficulty = 'easy'
 elif args.hard:
     config.board_width = 16
     config.board_height = 30
     config.mine_count = 99
+    config.difficulty = 'hard'
 elif args.custom:
+    config.difficulty = 'custom'
     config.board_width, config.board_height, config.mine_count = args.custom
