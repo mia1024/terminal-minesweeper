@@ -53,28 +53,21 @@ class Grid:
     CENTER = "╋"
     SPACE = "　"
 
-    def __init__(self, width, height):
+    def __init__(self, board:Board):
         """
         the width and height does not include borders
         :param width: the width, in interpolated pixels
         :param height: the height, in interpolated pixels
         """
-        self.width = width
-        self.height = height
-        self.grid = []
-        for y in range(self.height):
-            row = []
-            for x in range(self.width):
-                row.append(random.choice([self.SPACE]))
-            self.grid.append(row)
-
-    def put(self, row: int, col: int, char: str):
-        if 0x30 <= (charcode := ord(char)) <= 0x40:
-            charcode += 0xff10 - 0x30
-            char = chr(charcode)
-        self.grid[row][col] = char
+        self.width = board.width
+        self.height = board.height
+        self.board=board
 
     def render(self):
+        """
+        render the frame
+        :return: a list of strings, each representing a line
+        """
         res = []
         row = self.TOPLEFT
         for x in range(self.width - 1):
@@ -84,7 +77,7 @@ class Grid:
         for y in range(self.height - 2):
             row = self.VBAR
             for x in range(self.width):
-                row += ' ' + self.grid[y][x] + ' ' + self.VBAR
+                row += f' {self.board[y][x]} {self.VBAR}'
             res.append(row)
 
             row = self.LEFT
@@ -95,7 +88,7 @@ class Grid:
 
         row = self.VBAR
         for x in range(self.width):
-            row += ' ' + self.grid[-1][x] + ' ' + self.VBAR
+            row += f' {str(self.board[-1][x])} {self.VBAR}'
         res.append(row)
 
         row = self.BOTTOMLEFT
@@ -114,7 +107,7 @@ class UIManager:
         self.mouse_y = 0
         self.mouse_x = 0
         self.monitor = FPSMonitor()
-        self.grid = Grid(config.board_width, config.board_height)
+        self.grid = Grid(self.board)
         self.should_exit = False
         self.animation_frame = 0
 

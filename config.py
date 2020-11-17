@@ -1,4 +1,5 @@
-import argparse, sys
+import argparse
+import sys
 
 
 class SingletonMeta(type):
@@ -12,7 +13,7 @@ class SingletonMeta(type):
             return obj
 
 
-class Config(metaclass=SingletonMeta):
+class Config(metaclass = SingletonMeta):
     def __init__(self):
         self.use_emojis = True
         self.framerate = 60
@@ -26,28 +27,31 @@ class Config(metaclass=SingletonMeta):
 
 
 config = Config()
-parser = argparse.ArgumentParser(prog='terminal-minesweeper', add_help=False)
+parser = argparse.ArgumentParser(prog = 'terminal-minesweeper', add_help = False)
 g = parser.add_argument_group('Options')
 group = g.add_mutually_exclusive_group()
-group.add_argument('-e', '--easy', action='store_true',
-                   help='Set the game difficulty to easy (9x9 board with 10 mines)')
-group.add_argument('-i', '--intermediate', action='store_true',
-                   help='Set the game difficulty to intermediate (16x16 board with 40 mines). This is the default.')
-group.add_argument('-h', '--hard', action='store_true',
-                   help='Set the game difficulty to hard (16x30 board with 99 mines).')
-group.add_argument('-c', '--custom', nargs=3, type=int, metavar=('width', 'height', 'mines'),
-                   help='Set a custom game difficulty.')
+group.add_argument('-e', '--easy', action = 'store_true',
+                   help = 'Set the game difficulty to easy (9x9 board with 10 mines)')
+group.add_argument('-i', '--intermediate', action = 'store_true',
+                   help = 'Set the game difficulty to intermediate (16x16 board with 40 mines). This is the default.')
+group.add_argument('-h', '--hard', action = 'store_true',
+                   help = 'Set the game difficulty to hard (16x30 board with 99 mines).')
+group.add_argument('-c', '--custom', nargs = 3, type = int, metavar = ('width', 'height', 'mines'),
+                   help = 'Set a custom game difficulty.')
 
-g.add_argument('--silent-checks', action='store_true',
-               help='Performs the initial system checks quickly and quietly.')
-g.add_argument('--no-animation', action='store_true',
-               help='Skip the startup and closing animations.'
-                    'May cause a significant screen flicker when the program '
-                    'starts.')
-g.add_argument('--ignore-failures', action='store_true',
-               help='Ignore all failures in the initial system checks. Not recommended.')
+g.add_argument('--silent-checks', action = 'store_true',
+               help = 'Performs the initial system checks quickly and quietly.')
+g.add_argument('--no-animation', action = 'store_true',
+               help = 'Skip the startup and closing animations.'
+                      'May cause a significant screen flicker when the program '
+                      'starts.')
+g.add_argument('-q', '--quick', action = 'store_true',
+               help = 'A shortcut argument that is the equivalent of supplying'
+                      'both --silent-checks and --no-animation.')
+g.add_argument('--ignore-failures', action = 'store_true',
+               help = 'Ignore all failures in the initial system checks. Not recommended.')
 
-g.add_argument('--help', action='store_true', help='Show this help message and exit.')
+g.add_argument('--help', action = 'store_true', help = 'Show this help message and exit.')
 args = parser.parse_args()
 
 if args.help:
@@ -55,8 +59,9 @@ if args.help:
     sys.exit(0)
 
 config.ignore_failures = args.ignore_failures
-config.silent_checks = args.silent_checks
-config.show_animation = not args.no_animation
+config.silent_checks = args.silent_checks or args.quick
+config.show_animation = not (args.no_animation or args.quick)
+
 
 if args.easy:
     config.board_width = 9
