@@ -3,7 +3,22 @@ import sys
 
 
 class SingletonMeta(type):
+    """
+    A straightforward metaclass for implementing singleton so that changes to
+    the config object during runtime is kept the same across different modules
+    """
     def __call__(cls, *args, **kwargs):
+        """
+        constructs the object if it's never constructed before, else return
+        the copy constructed last time. This does mean that on subsequent
+        invocation of this function, no args or kwargs need to be passed even
+        if the object constructor requires some. Yes the IDE will complain about
+        the missing argument but that's what the ignore error button is for.
+
+        :param args: args passed to the object constructor and initializer
+        :param kwargs: kwargs passed to the object constructor and initializer
+        :return: the object, whether newly created or cached
+        """
         if hasattr(cls, '_instance'):
             return cls._instance
         else:
@@ -14,7 +29,12 @@ class SingletonMeta(type):
 
 
 class Config(metaclass = SingletonMeta):
+    """
+    A simple class holding all the important game configurations. It's a
+    singleton
+    """
     def __init__(self):
+        "Initialize the object to default values"
         self.use_emojis = True
         self.framerate = 60
         self.board_width = 16
