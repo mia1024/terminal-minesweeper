@@ -3,6 +3,7 @@ import datetime
 import signal
 import time
 import traceback
+import sys
 from math import ceil, floor
 from board import Board, Cell, GameOver
 from config import config
@@ -30,7 +31,8 @@ for var in dir(curses):
 # a simple wrapper around the mouse events for easier processing
 MouseEvent = IntFlag('MouseEvent',
                      [(v, getattr(curses, v)) for v in filter(lambda s: s.startswith('BUTTON'), dir(curses))] +
-                     [['DRAG', 1 << 28]])  # trials and errors suggest this is the code
+                     [['DRAG', 1 << (27 if sys.platform=='darwin' else 28)]]
+                     )  # trials and errors suggest this is the code
 
 
 def cell_color(value, highlight):
@@ -132,7 +134,7 @@ class CellWidget(Widget):
             return
 
         keyboard = keyboard.lower()
-        debug_print(f'{repr(self.cell)}: {(self.y, self.x)} {keyboard} {mouse}')
+        debug_print(f'Event in {repr(self.cell)}: {(self.y, self.x)} {keyboard} {mouse}')
 
         if (MouseEvent.BUTTON2_PRESSED in mouse or
                 (self.root.button2_pressed and MouseEvent.DRAG in mouse)):
@@ -167,7 +169,7 @@ class CellWidget(Widget):
                 self.highlighted.add(self.cell)
 
     def render(self):
-        debug_print(f'{repr(self.cell)} render')
+        # debug_print(f'{repr(self.cell)} render')
         try:
             v = int(str(self.cell))
         except ValueError:
@@ -444,7 +446,7 @@ class RootWidget(Widget):
         self.addstr(1, 6, '│')
         self.addstr(2, 6, '┴')
 
-        debug_print('Window render')
+        # debug_print('Window render')
         self.window.refresh()
         self.monitor.tick()
 
