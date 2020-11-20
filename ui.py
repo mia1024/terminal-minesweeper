@@ -36,8 +36,10 @@ MouseEvent = IntFlag('MouseEvent',
 def cell_color(value, highlight):
     return (value << 3) + (highlight << 2)
 
-def debug_print(*args,**kwargs):
-    _debug_print(f'Frame {Widget.root.frame_count}:',*args,**kwargs)
+
+def debug_print(*args, **kwargs):
+    _debug_print(f'Frame {Widget.root.frame_count}:', *args, **kwargs)
+
 
 class FPSMonitor:
     def __init__(self):
@@ -62,8 +64,8 @@ class Widget:
         self.parent = parent
         self.x = x
         self.y = y
-        self.animation_frame = 0
         self.subwidgets = []
+        self._animation_frame = 0
 
     def addstr(self, y: int, x: int, text, *args, **kwargs):
         """
@@ -98,6 +100,16 @@ class Widget:
 
     def render(self):
         pass
+
+    @property
+    def animation_frame(self):
+        return self._animation_frame
+
+    @animation_frame.setter
+    def animation_frame(self, v):
+        self._animation_frame = v
+        for w in self.subwidgets:
+            w.animation_frame = v
 
 
 class CellWidget(Widget):
@@ -332,13 +344,6 @@ class RootWidget(Widget):
 
         ch = self.window.getch()
         self.window.erase()
-        self.paint_window()
-
-        # overwrite the close button onto the window
-        self.addstr(1, 3, 'Ｘ')
-        self.addstr(0, 6, '┬')
-        self.addstr(1, 6, '│')
-        self.addstr(2, 6, '┴')
 
         if ch == curses.KEY_MOUSE:
             keyboard = '\0'
@@ -411,10 +416,10 @@ class RootWidget(Widget):
         self.addstr(self.status_y_offset, self.status_x_offset + 9, self.time_taken)
         self.addstr(self.status_y_offset + 4, self.status_x_offset, '        Operations:')
         self.addstr(self.status_y_offset + 5, self.status_x_offset, 'Reveal cell    [LMB]/[R] ')
-        self.addstr(self.status_y_offset + 7, self.status_x_offset, 'Reveal area    [MMB]/[Space]')
-        self.addstr(self.status_y_offset + 6, self.status_x_offset, 'Flag cell      [RMB]/[F] ')
-        self.addstr(self.status_y_offset + 7, self.status_x_offset, 'Restart        [Enter]')
-        self.addstr(self.status_y_offset + 8, self.status_x_offset, 'Toggle emojis  [T] ')
+        self.addstr(self.status_y_offset + 6, self.status_x_offset, 'Reveal area    [MMB]/[Space]')
+        self.addstr(self.status_y_offset + 7, self.status_x_offset, 'Flag cell      [RMB]/[F] ')
+        self.addstr(self.status_y_offset + 8, self.status_x_offset, 'Restart        [Enter]')
+        self.addstr(self.status_y_offset + 9, self.status_x_offset, 'Toggle emojis  [T] ')
 
         emo = config.use_emojis
         self.addstr(self.status_y_offset + 11, self.status_x_offset + 10, 'Symbols')
@@ -430,6 +435,15 @@ class RootWidget(Widget):
 
         self.grid.render()
         self.status.render()
+
+        # overwrite all other widgets
+        self.paint_window()
+
+        # overwrite the close button onto the window
+        self.addstr(0, 6, '┬')
+        self.addstr(1, 6, '│')
+        self.addstr(2, 6, '┴')
+
         debug_print('Window render')
         self.window.refresh()
         self.monitor.tick()
@@ -451,6 +465,8 @@ class RootWidget(Widget):
                 self.exit()
             else:
                 self.addstr(1, 2, ' Ｘ ', curses.color_pair(2))
+        else:
+            self.addstr(1, 3, 'Ｘ')
 
 
 def mainloop(win: curses.window):
@@ -467,6 +483,7 @@ def mainloop(win: curses.window):
         root.animation_frame += in_animation
         root.render()
         if config.show_animation and in_animation:
+            curses.flushinp()
             curses.napms(20)
         if root.should_exit:
             if config.show_animation:
