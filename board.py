@@ -69,8 +69,6 @@ class Cell(metaclass = CellMeta):
         if REVEALED not in self.state:
             debug_print(f'{repr(self)} toggle flag')
             self.state ^= FLAGGED
-            self.state ^= HIGHLIGHT
-            # manually bypass the highlight lock after flagging
 
     def explode(self):
         """Set the cell to have exploded"""
@@ -94,6 +92,8 @@ class Cell(metaclass = CellMeta):
         if not force and not (REVEALED in self.state or FLAGGED in self.state):
             debug_print(f'{repr(self)} toggle highlight')
             self.state ^= HIGHLIGHT
+        elif FLAGGED in self.state and HIGHLIGHT in self.state:
+            self.state^=HIGHLIGHT
 
     def reveal(self, chain = False, force = False):
         """
@@ -129,7 +129,7 @@ class Cell(metaclass = CellMeta):
         if EXPLODED in self.state:
             return '💥' if emo else '＊'
         if MINE | FLAGGED | REVEALED in self.state:
-            return '⛳' if emo else 'Ｘ'
+            return '🏁' if emo else 'Ｘ'
         if MINE | REVEALED in self.state:
             return '💣' if emo else 'Ｏ'
         if FLAGGED in self.state:
@@ -182,10 +182,10 @@ class Board:
         self.cells = []
         self.width = config.board_width
         self.height = config.board_height
-        for x in range(self.width):
+        for y in range(self.height):
             self.board.append([])
-            for y in range(self.height):
-                cell = Cell(x, y)
+            for x in range(self.width):
+                cell = Cell(y, x)
                 self.board[-1].append(cell)
                 self.cells.append(cell)
 
@@ -247,3 +247,6 @@ class Board:
             cell.state = State(0)
             cell.value = 0
             cell.surroundings = []
+
+    def flag_count(self):
+        return sum(FLAGGED in s.state for s in self.cells)

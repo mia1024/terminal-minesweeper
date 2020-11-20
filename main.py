@@ -33,6 +33,7 @@ def check(condition: bool, name: str, error_message: str):
     if config.silent_checks:
         if not (condition or config.ignore_failures):
             print('\033[37mError: ' + error_message + '\033[0m')
+            print('\033[?25h', end = '')  # reenable cursor
             sys.exit(1)
         else:
             return
@@ -89,7 +90,7 @@ check(curses_ok, 'if curses is present',
 
 width, height = os.get_terminal_size()
 
-min_width = config.board_width * 5 + 1 + 10 + 22
+min_width = config.board_width * 5 + 1 + 38
 min_height = config.board_height * 2 + 8
 check(
     width >= min_width and height >= min_height,
@@ -101,7 +102,7 @@ check(
 )
 
 if config.show_animation:
-    print()
+    print()]
     print_slow('All system checks completed, ready to sweep some mines（＾ω＾）')
     print_slow('You have selected {} difficulty, which has a {}x{} grid with {} mines.\n'.format(
         config.difficulty, config.board_width, config.board_height, config.mine_count

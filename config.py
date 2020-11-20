@@ -108,8 +108,8 @@ if args.easy:
     config.mine_count = 10
     config.difficulty = 'easy'
 elif args.hard:
-    config.board_width = 16
-    config.board_height = 30
+    config.board_width = 30
+    config.board_height = 16
     config.mine_count = 99
     config.difficulty = 'hard'
 elif args.custom:
