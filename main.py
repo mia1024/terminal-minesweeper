@@ -4,7 +4,7 @@ import sys
 import time
 
 from config import config
-from utils import init_print,end_print
+from debug import init_print,end_print
 
 
 def sigint_handler(signum, frame):

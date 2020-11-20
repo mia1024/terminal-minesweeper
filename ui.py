@@ -6,8 +6,9 @@ import traceback
 from math import ceil, floor
 from board import Board, Cell, GameOver
 from config import config
-from utils import debug_print
+from debug import debug_print as _debug_print
 from enum import IntFlag
+from box import Box
 
 FG = 232
 BG = 231
@@ -35,6 +36,8 @@ MouseEvent = IntFlag('MouseEvent',
 def cell_color(value, highlight):
     return (value << 3) + (highlight << 2)
 
+def debug_print(*args,**kwargs):
+    _debug_print(f'Frame {Widget.root.frame_count}:',*args,**kwargs)
 
 class FPSMonitor:
     def __init__(self):
@@ -98,7 +101,7 @@ class Widget:
 
 
 class CellWidget(Widget):
-    highlighted = []
+    highlighted = set()
     last_clear = 0
 
     def __init__(self, parent, y, x, cell: Cell):
@@ -117,8 +120,7 @@ class CellWidget(Widget):
             return
 
         keyboard = keyboard.lower()
-        if keyboard != '\0' or mouse:
-            debug_print(f'{repr(self.cell)}: {(self.y, self.x)} {keyboard} {mouse}')
+        debug_print(f'{repr(self.cell)}: {(self.y, self.x)} {keyboard} {mouse}')
 
         if (MouseEvent.BUTTON2_PRESSED in mouse or
                 (self.root.button2_pressed and MouseEvent.DRAG in mouse)):
@@ -126,7 +128,9 @@ class CellWidget(Widget):
             self.clear_highlight()
             for c in self.cell.surroundings:
                 c.highlight()
-                self.highlighted.append(c)
+                self.highlighted.add(c)
+            self.cell.highlight()
+            self.highlighted.add(self.cell)
         elif (MouseEvent.BUTTON2_RELEASED in mouse) or keyboard == ' ':
             debug_print(f'{repr(self.cell)} area reveal')
             self.clear_highlight()
@@ -146,31 +150,30 @@ class CellWidget(Widget):
             if not self.root.game_start and not self.root.game_over:
                 self.cell.flag()
         else:
-            if self.cell not in self.highlighted:
+            if not self.cell.is_highlighted:
                 self.cell.highlight()
-                self.highlighted.append(self.cell)
+                self.highlighted.add(self.cell)
 
     def render(self):
+        debug_print(f'{repr(self.cell)} render')
         try:
             v = int(str(self.cell))
         except ValueError:
-            if self.cell.is_highlighted():
+            if self.cell.is_highlighted:
                 self.addstr(0, 0, f' {self.cell} ', curses.color_pair(UI_HIGHLIGHT))
             else:
                 self.addstr(0, 1, self.cell)
         else:
-            if self.cell.is_highlighted():
+            if self.cell.is_highlighted:
                 self.addstr(0, 0, ' ', curses.color_pair(UI_HIGHLIGHT))
                 self.addstr(0, 3, ' ', curses.color_pair(UI_HIGHLIGHT))
-            attrs = curses.color_pair(cell_color(self.cell.value, self.cell.is_highlighted()))
+            attrs = curses.color_pair(cell_color(self.cell.value, self.cell.is_highlighted))
             if v != 0:
                 attrs |= curses.A_BOLD
             self.addstr(0, 1, self.cell, attrs)
 
         # clear highlight after the rendering, so if a highlight is added
         # back in the next tick the screen won't flicker
-        if not self.root.button2_pressed and self.root.frame_count > self.last_clear + self.root.monitor.fps / 20:
-            self.clear_highlight()
 
 
 class GridWidget(Widget):
@@ -179,19 +182,6 @@ class GridWidget(Widget):
     so that the output is approximately square
     """
 
-    VBAR = "┃"
-    HBAR = "━"
-    TOPLEFT = "┏"
-    TOPRIGHT = "┓"
-    BOTTOMLEFT = "┗"
-    BOTTOMRIGHT = "┛"
-    LEFT = "┣"
-    RIGHT = "┫"
-    TOP = "┳"
-    BOTTOM = "┻"
-    CENTER = "╋"
-    SPACE = "　"
-
     def __init__(self, parent, y, x, board: Board):
         """
         the width and height does not include borders
@@ -199,34 +189,71 @@ class GridWidget(Widget):
         :param height: the height, in interpolated pixels
         """
         super().__init__(parent, y, x)
-        self.width = board.width
-        self.height = board.height
         self.board = board
         for cell in board.cells:
             self.subwidgets.append(CellWidget(self, cell.y * 2 + 1, cell.x * 5 + 1, cell))
 
-    def get_cell(self, y, x):
-        """return a matched cell, or None, based on the coordinate passed in"""
-        debug_print(f'Grid received coord {(y, x)}')
-        if y % 2 == 0 or x % 5 == 0:
-            return None
-        y //= 2
-        x //= 5
-        try:
-            cell = self.board[y, x]
-            debug_print('Grid returning ', repr(cell))
-            return cell
-        except KeyError:
-            raise
-
     def render(self):
-        width = self.width * 5 + 1
-        self.addstr(0, 0, self.TOPLEFT)
-        self.addstr(0, 1, (self.HBAR * 4 + self.TOP) * (self.width - 1))
-        self.addstr(0, width - 5, self.HBAR * 4 + self.TOPRIGHT)
+        width = self.board.width * 5 + 1
+        height = self.board.height * 2 + 1
+
+        # overwrite with thick font wherever necessary
+        for x in range(self.board.width - 1):
+            for y in range(self.board.height - 1):
+                cluster = (self.board[y + 0, x + 0], self.board[y + 0, x + 1],
+                           self.board[y + 1, x + 0], self.board[y + 1, x + 1])
+                tl = not cluster[0].is_revealed  # top left
+                tr = not cluster[1].is_revealed  # top right
+                bl = not cluster[2].is_revealed  # bottom left
+                br = not cluster[3].is_revealed  # bottom right
+
+                # calculate the special cases
+                if not x:
+                    self.addstr(y * 2 + 1, 0, Box.up(tl).down(tl))
+                    self.addstr(y * 2 + 3, 0, Box.up(bl).down(bl))
+                    self.addstr(y * 2 + 2, 0, Box.up(tl).down(bl).right(tl or bl))
+                if x == self.board.width - 2:
+                    self.addstr(y * 2 + 1, x * 5 + 10, Box.up(tr).down(tr))
+                    self.addstr(y * 2 + 3, x * 5 + 10, Box.up(br).down(br))
+                    self.addstr(y * 2 + 2, x * 5 + 10, Box.up(tr).down(br).left(tr or br))
+
+                if not y:
+                    self.addstr(y * 2, x * 5 + 1, Box.left(tl).right(tl) * 4)
+                    self.addstr(y * 2, x * 5 + 6, Box.left(tr).right(tr) * 4)
+                    self.addstr(y * 2, x * 5 + 5, Box.left(tl).right(tr).down(tl or tr))
+
+                if y == self.board.height - 2:
+                    self.addstr(y * 2 + 4, x * 5 + 1, Box.left(bl).right(bl) * 4)
+                    self.addstr(y * 2 + 4, x * 5 + 6, Box.left(br).right(br) * 4)
+                    self.addstr(y * 2 + 4, x * 5 + 5, Box.left(bl).right(br).up(bl or br))
+
+                # horizontal lines
+                self.addstr(y * 2 + 2, x * 5 + 1, Box.left(tl or bl).right(tl or bl) * 4)
+                self.addstr(y * 2 + 2, x * 5 + 6, Box.left(tr or br).right(tr or br) * 4)
+
+                # vertical lines
+                self.addstr(y * 2 + 1, x * 5 + 5, Box.up(tl or tr).down(tl or tr))
+                self.addstr(y * 2 + 3, x * 5 + 5, Box.up(bl or br).down(bl or br))
+
+                # the center
+                self.addstr(y * 2 + 2, x * 5 + 5, Box(tl or tr, bl or br, tl or bl, tr or br))
+
+        # add the corners
+        tl = not self.board[0][0].is_revealed  # top left
+        tr = not self.board[0][-1].is_revealed  # top right
+        bl = not self.board[-1][0].is_revealed  # bottom left
+        br = not self.board[-1][-1].is_revealed  # bottom right
+
+        self.addstr(0, 0, Box.right(tl).down(tl))
+        self.addstr(0, width - 1, Box.left(tr).down(tr))
+        self.addstr(height - 1, 0, Box.up(bl).right(bl))
+        self.addstr(height - 1, width - 1, Box.up(br).left(br))
 
         for w in self.subwidgets:
             w.render()
+
+        if not self.root.button2_pressed and self.root.frame_count > CellWidget.last_clear + self.root.monitor.fps / 20:
+            CellWidget.clear_highlight()
 
 
 class StatusWidget(Widget):
@@ -245,7 +272,7 @@ class StatusWidget(Widget):
 class RootWidget(Widget):
     def __init__(self, win: curses.window):
         super().__init__(win, 0, 0)
-        self.win = win
+        self.window = win
         self.board = Board()
         self.mouse_y = 0
         self.mouse_x = 0
@@ -289,22 +316,22 @@ class RootWidget(Widget):
         produced by calc_first_frame()
         """
 
-        winh, winw = self.win.getmaxyx()
-        self.win.addstr(0, 1, '╭' + '─' * (winw - 4) + '╮')
-        self.win.addch(1, 1, '│')
-        self.win.addch(1, winw - 2, '│')
-        self.win.addstr(1, (winw - 24) // 2 + 2, 'TERMINAL MINESWEEPER')
-        self.win.addstr(2, 1, '├' + '─' * (winw - 4) + '┤')
+        winh, winw = self.window.getmaxyx()
+        self.window.addstr(0, 1, '╭' + '─' * (winw - 4) + '╮')
+        self.window.addch(1, 1, '│')
+        self.window.addch(1, winw - 2, '│')
+        self.window.addstr(1, (winw - 24) // 2 + 2, 'TERMINAL MINESWEEPER')
+        self.window.addstr(2, 1, '├' + '─' * (winw - 4) + '┤')
         for y in range(3, winh - 1):
-            self.win.addch(y, 1, '│')
-            self.win.addch(y, winw - 2, '│')
-        self.win.addstr(winh - 1, 1, '╰' + '─' * (winw - 4) + '╯')
+            self.window.addch(y, 1, '│')
+            self.window.addch(y, winw - 2, '│')
+        self.window.addstr(winh - 1, 1, '╰' + '─' * (winw - 4) + '╯')
 
     def render(self):
         self.frame_count += 1
 
-        ch = self.win.getch()
-        self.win.erase()
+        ch = self.window.getch()
+        self.window.erase()
         self.paint_window()
 
         # overwrite the close button onto the window
@@ -403,12 +430,13 @@ class RootWidget(Widget):
 
         self.grid.render()
         self.status.render()
-        self.win.refresh()
+        debug_print('Window render')
+        self.window.refresh()
         self.monitor.tick()
 
     def key_event(self, y, x, keyboard, mouse):
         try:
-            self.win.addch(self.mouse_y, self.mouse_x, curses.ACS_DIAMOND)
+            self.window.addch(self.mouse_y, self.mouse_x, curses.ACS_DIAMOND)
         except curses.error:
             pass  # sometimes mouse fly around and that's ok
 

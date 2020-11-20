@@ -2,6 +2,7 @@ import random
 from enum import IntFlag
 from typing import List
 from config import Config
+from debug import debug_print
 
 config = Config()
 
@@ -66,24 +67,32 @@ class Cell(metaclass = CellMeta):
     def flag(self):
         """Flag the cell. If it's flagged, unflag it"""
         if REVEALED not in self.state:
+            debug_print(f'{repr(self)} toggle flag')
             self.state ^= FLAGGED
             self.state ^= HIGHLIGHT
             # manually bypass the highlight lock after flagging
 
-
     def explode(self):
         """Set the cell to have exploded"""
+        debug_print(f'{repr(self)} set exploded')
         self.state |= EXPLODED
 
     def set_mine(self):
         """Set the cell to be a mine"""
+        debug_print(f'{repr(self)} set mine')
         self.state |= MINE
 
+    @property
+    def is_revealed(self):
+        return REVEALED in self.state
+
+    @property
     def is_highlighted(self):
         return HIGHLIGHT in self.state
 
     def highlight(self, force = False):
         if not force and not (REVEALED in self.state or FLAGGED in self.state):
+            debug_print(f'{repr(self)} toggle highlight')
             self.state ^= HIGHLIGHT
 
     def reveal(self, chain = False, force = False):
@@ -95,6 +104,7 @@ class Cell(metaclass = CellMeta):
         """
         if FLAGGED in self.state and not force:
             return []  # A flagged cell can't be revealed until unflagged
+        debug_print(f'{repr(self)} reveal')
         self.state |= REVEALED
         self.state &= ~HIGHLIGHT
         if MINE in self.state and not force:
@@ -127,6 +137,8 @@ class Cell(metaclass = CellMeta):
         # if REVEALED in self.state and not self.value:
         #     return '　'
         if REVEALED in self.state:
+            if self.value == 0:
+                return '　'
             return chr(0xff10 + self.value)
         return '　'
 
@@ -161,6 +173,8 @@ class Cell(metaclass = CellMeta):
                     to_reveal.extend(cell.reveal(chain))
         return to_reveal
 
+    def __hash__(self):
+        return hash((self.y,self.x))
 
 class Board:
     def __init__(self):
