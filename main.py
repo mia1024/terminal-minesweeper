@@ -102,7 +102,7 @@ check(
 )
 
 if config.show_animation:
-    print()]
+    print()
     print_slow('All system checks completed, ready to sweep some mines（＾ω＾）')
     print_slow('You have selected {} difficulty, which has a {}x{} grid with {} mines.\n'.format(
         config.difficulty, config.board_width, config.board_height, config.mine_count

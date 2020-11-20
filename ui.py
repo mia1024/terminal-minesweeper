@@ -11,13 +11,22 @@ from debug import debug_print as _debug_print
 from enum import IntFlag
 from box import Box
 
-FG = 232
-BG = 231
+
+
+if config.dark_mode:
+    FG = 255
+    BG = 232
+    UI_HIGHLIGHT_FG = FG
+    UI_HIGHLIGHT_BG = 242
+else:
+    FG = 232
+    BG = 231
+    UI_HIGHLIGHT_FG = FG
+    UI_HIGHLIGHT_BG = 250
+
 VALUES = [
     FG, 12, 2, 9, 4, 1, 6, 0, 8
 ]
-UI_HIGHLIGHT_FG = 232
-UI_HIGHLIGHT_BG = 250
 
 DEFAULT = 1
 UI_HIGHLIGHT = 2
@@ -500,6 +509,12 @@ class RootWidget(Widget):
         if y == 1 and 2 <= x <= 5:
             if MouseEvent.BUTTON1_PRESSED in mouse:
                 self.exit()
+        if not self.game_over:
+            if MouseEvent.BUTTON2_PRESSED in mouse:
+                self.status.status = '😲' if config.use_emojis else ''
+
+            if MouseEvent.BUTTON2_RELEASED in mouse:
+                self.status.status = '🙂' if config.use_emojis else ''
 
 
 def mainloop(win: curses.window):
