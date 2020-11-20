@@ -1,6 +1,6 @@
 import random
-from enum import auto, IntFlag
-
+from enum import IntFlag
+from typing import List
 from config import Config
 
 config = Config()
@@ -8,11 +8,12 @@ config = Config()
 
 class State(IntFlag):
     """A helper class to hold the state of a cell. It's a subclass of enum.IntFlag"""
-    REVEALED = auto()
-    EXPLODED = auto()
-    MINE = auto()
-    HIGHLIGHT = auto()
-    FLAGGED = auto()
+    REVEALED = 1 << 0
+    EXPLODED = 1 << 1
+    MINE = 1 << 2
+    HIGHLIGHT = 1 << 3
+    FLAGGED = 1 << 4
+
 
 # expose the variables to global scope like in C
 # yes i could have used a globals().update() but my IDE isn't happy with that :(
@@ -22,6 +23,8 @@ MINE = State.MINE
 HIGHLIGHT = State.HIGHLIGHT
 FLAGGED = State.FLAGGED
 
+
+class GameOver(Exception): pass
 
 
 class CellMeta(type):
@@ -58,10 +61,15 @@ class Cell(metaclass = CellMeta):
         self.y = y
         self.state = State(0)
         self.value = 0
+        self.surroundings = []  # this will be initialized in self.calc_values()
 
     def flag(self):
-        """Flag the cell"""
-        self.state |= FLAGGED
+        """Flag the cell. If it's flagged, unflag it"""
+        if REVEALED not in self.state:
+            self.state ^= FLAGGED
+            self.state ^= HIGHLIGHT
+            # manually bypass the highlight lock after flagging
+
 
     def explode(self):
         """Set the cell to have exploded"""
@@ -71,26 +79,59 @@ class Cell(metaclass = CellMeta):
         """Set the cell to be a mine"""
         self.state |= MINE
 
-    def reveal(self):
-        """Reveal the content of a cell"""
+    def is_highlighted(self):
+        return HIGHLIGHT in self.state
+
+    def highlight(self, force = False):
+        if not force and not (REVEALED in self.state or FLAGGED in self.state):
+            self.state ^= HIGHLIGHT
+
+    def reveal(self, chain = False, force = False):
+        """
+        Reveal the content of a cell
+        :param chain: whether the reveal should be chained to the surrounding
+        :param force: whether the reveal is forced
+        :return: a list of cells, potentially empty, that should be revealed next
+        """
+        if FLAGGED in self.state and not force:
+            return []  # A flagged cell can't be revealed until unflagged
         self.state |= REVEALED
+        self.state &= ~HIGHLIGHT
+        if MINE in self.state and not force:
+            raise GameOver(self)
+        if self.value == 0:
+            to_reveal = []
+
+            for cell in self.surroundings:
+                if REVEALED not in cell.state:
+                    to_reveal.append(cell)
+            # debug_print(to_reveal)
+            if chain:
+                for cell in to_reveal:
+                    cell.reveal(True, force)
+                return []
+            else:
+                return to_reveal
+        return []
 
     def __str__(self):
         emo = config.use_emojis
+        if EXPLODED in self.state:
+            return '💥' if emo else '＊'
+        if MINE | FLAGGED | REVEALED in self.state:
+            return '⛳' if emo else 'Ｘ'
+        if MINE | REVEALED in self.state:
+            return '💣' if emo else 'Ｏ'
         if FLAGGED in self.state:
             return '🚩' if emo else 'Ｆ'
-        if EXPLODED in self.state:
-            return '💥' if emo else 'Ｏ'
-        if MINE | REVEALED in self.state:
-            return '💣' if emo else 'Ｘ'
-        if REVEALED in self.state and not self.value:
-            return '　'
+        # if REVEALED in self.state and not self.value:
+        #     return '　'
         if REVEALED in self.state:
             return chr(0xff10 + self.value)
         return '　'
 
     def __repr__(self):
-        return f'<Cell {self.state}>'
+        return f'<Cell {self.value} at {(self.y, self.x)} {self.state}>'
 
     def calc_value(self):
         """Calculate the value of the cell (the number of mines in vicinity) based on its surroundings"""
@@ -107,14 +148,26 @@ class Cell(metaclass = CellMeta):
         for surr in surroundings:
             if surr in Cell:
                 self.value += MINE in Cell[surr].state
+                self.surroundings.append(Cell[surr])
+
+    def area_reveal(self, chain = False):
+        if not REVEALED in self.state:
+            return []
+        flags = sum(FLAGGED in s.state for s in self.surroundings)
+        to_reveal = []
+        if flags == self.value:
+            for cell in self.surroundings:
+                if FLAGGED not in cell.state:
+                    to_reveal.extend(cell.reveal(chain))
+        return to_reveal
 
 
 class Board:
     def __init__(self):
         self.board = []
         self.cells = []
-        self.width=config.board_width
-        self.height=config.board_height
+        self.width = config.board_width
+        self.height = config.board_height
         for x in range(self.width):
             self.board.append([])
             for y in range(self.height):
@@ -123,9 +176,11 @@ class Board:
                 self.cells.append(cell)
 
     def __iter__(self):
-        return iter(self.board)
+        for row in self.board:
+            for cell in row:
+                yield cell
 
-    def init_mines(self,avoid:tuple):
+    def init_mines(self, clicked: Cell):
         """
         Deferred initialization of mines to guarantee the first click is not
         a mine.
@@ -133,16 +188,22 @@ class Board:
         :return: None
         """
 
-        cells=self.cells.copy()
-        cells.remove(avoid)
-        for c in random.sample(cells, config.mine_count):
-            c.set_mine() # initialize the mines
+        while True:
+            for c in random.sample(self.cells, config.mine_count):
+                c.set_mine()  # initialize the mines
 
-        for c in cells:
-            c.calc_value()
+            for c in self.cells:
+                c.calc_value()
+
+            if clicked.value != 0 or MINE in clicked.state:
+                self.reset()
+            else:
+                return
 
     def __getitem__(self, item):
         """a proxy function to translate all indexes to the underlying list"""
+        if isinstance(item, tuple) and len(item) == 2:
+            return self.board[item[0]][item[1]]
         return self.board[item]
 
     def __str__(self):
@@ -161,4 +222,14 @@ class Board:
         """
         :return: a boolean indicating whether the game has been won
         """
-        return all(REVEALED in c.state or FLAGGED in c.state for c in self.cells)
+        return all(REVEALED in c.state or MINE in c.state for c in self.cells)
+
+    def reveal_all(self):
+        for cell in self:
+            cell.reveal(force = True)
+
+    def reset(self):
+        for cell in self.cells:
+            cell.state = State(0)
+            cell.value = 0
+            cell.surroundings = []

@@ -4,6 +4,7 @@ import sys
 import time
 
 from config import config
+from utils import init_print,end_print
 
 
 def sigint_handler(signum, frame):
@@ -89,7 +90,7 @@ check(curses_ok, 'if curses is present',
 width, height = os.get_terminal_size()
 
 min_width = config.board_width * 5 + 1 + 10 + 22
-min_height = config.board_height * 2 + 6
+min_height = config.board_height * 2 + 8
 check(
     width >= min_width and height >= min_height,
     'window size',
@@ -128,7 +129,9 @@ else:
     print()
 
 signal.signal(signal.SIGINT, system_sigint_handler)
+init_print()
 exit_message, exit_status = main()
+end_print()
 
 # recalculate screen sizes in case it changed
 width, height = os.get_terminal_size()
