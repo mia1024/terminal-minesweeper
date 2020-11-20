@@ -72,17 +72,17 @@ g.add_argument('-f', '--framerate', type=int, default=0,
 g.add_argument('--silent-checks', action='store_true',
                help='Performs the initial system checks quickly and quietly.')
 g.add_argument('--no-animation', action='store_true',
-               help='Skip the startup and closing animations.'
+               help='Skip the startup and closing animations. '
                     'May cause a significant screen flicker when the program '
                     'starts.')
 g.add_argument('-q', '--quick', action='store_true',
-               help='A shortcut argument that is the equivalent of supplying'
+               help='A shortcut argument that is the equivalent of supplying '
                     'both --silent-checks and --no-animation.')
 g.add_argument('--ignore-failures', action='store_true',
                help='Ignore all failures in the initial system checks.'
                     ' Not recommended.')
 g.add_argument('--no-emoji', action='store_true',
-               help='Use unicode characters to replace all the emojis.'
+               help='Use unicode characters to replace all the emojis. '
                     'Note that all emojis used by this program are from'
                     'Emoji v1.0 released in 2015.')
 g.add_argument('-d', '--debug', help='Enable debug mode.', action='store_true')
