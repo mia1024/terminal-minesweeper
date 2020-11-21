@@ -206,7 +206,16 @@ class Cell(metaclass = CellMeta):
 
 
 class Board:
+    """
+    This class holds the data for the game board, including all the cells.
+    it is primarily responsible for managing initializing a new game
+    and restart
+    """
+
     def __init__(self):
+        """
+        Initializes the board
+        """
         self.board = []
         self.cells = []
         self.width = config.board_width
@@ -219,29 +228,43 @@ class Board:
                 self.cells.append(cell)
 
     def __iter__(self):
-        for row in self.board:
-            for cell in row:
-                yield cell
+        """
+        allows iteration over the board object, exposes all the cells
+        """
+        return iter(self.cells)
 
     def init_mines(self, clicked: Cell):
         """
-        Deferred initialization of mines to guarantee the first click is not
-        a mine.
+        Deferred initialization of mines to guarantee the first click is a
+        white space.
         :param avoid: the position that will not be a mine
         :return: None
         """
 
+        count = 0
         while True:
             for c in random.sample(self.cells, config.mine_count):
+                # if the there are more mines than cells this call
+                # will raise an error, however we let the game
+                # crash because the player definitely expected
+                # this when they entered the mine counts
+
                 c.set_mine()  # initialize the mines
 
             for c in self.cells:
                 c.calc_value()
 
             if clicked.value != 0 or MINE in clicked.state:
-                self.reset()
+                if count < len(self.cells):
+                    self.reset()
+                else:
+                    # give up. the player sets an impossible option
+                    # such as 3x3 board with 5 mines
+                    return
             else:
                 return
+
+            count += 1
 
     def __getitem__(self, item):
         """a proxy function to translate all indexes to the underlying list"""
@@ -268,14 +291,24 @@ class Board:
         return all(REVEALED in c.state or MINE in c.state for c in self.cells)
 
     def reveal_all(self):
+        """
+        force reveal all the cells when game is over
+        """
         for cell in self:
             cell.reveal(force = True)
 
     def reset(self):
+        """
+        reset the board. because of the cell metaclass new cell instances
+        should not be constructed, so we clear the attributes instead
+        """
         for cell in self.cells:
             cell.state = State(0)
             cell.value = 0
             cell.surroundings = []
 
     def flag_count(self):
+        """
+        calculates total number of flaged cells
+        """
         return sum(FLAGGED in s.state for s in self.cells)
