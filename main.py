@@ -8,7 +8,11 @@ from debug import init_print,end_print
 
 
 def sigint_handler(signum, frame):
-    print('\033[0m\nAlright. Alright. We aren\'t sweeping any mine today (T＿T)')
+    """
+    SIGINT handler during the initialization. this will be replaced by a
+    a different hanlder when the mainloop starts.
+    """
+    print('\033[0m\nAlright. Alright. We aren\'t sweeping any mines today (T＿T)')
     print('\033[?25h', end = '')  # reenable cursor
     sys.exit(2)
 
@@ -18,6 +22,10 @@ signal.signal(signal.SIGINT, sigint_handler)
 
 
 def print_slow(text: str, trailing_newline = True, prefix = '', suffix = '', delay = 0.015):
+    """
+    writes contents to stdout one character at a time,
+    with delay seconds in between each print
+    """
     sys.stdout.write(prefix)
     sys.stdout.flush()
     for char in text:
@@ -30,6 +38,10 @@ def print_slow(text: str, trailing_newline = True, prefix = '', suffix = '', del
 
 
 def check(condition: bool, name: str, error_message: str):
+    """
+    Checking if a condition is met before starting the game. Aborting
+    the initialization if the condition isn't met.
+    """
     if config.silent_checks:
         if not (condition or config.ignore_failures):
             print('\033[37mError: ' + error_message + '\033[0m')
@@ -64,18 +76,24 @@ if not config.silent_checks:
         print_slow('To see a list of possible options, run this program with --help.')
     print_slow('\nCommencing system check.')
 
+
+# checking for python3.8 (3.7 doesn't work)
 v = sys.version_info
 check(v.major == 3 and v.minor >= 8,
       'Python version',
       'Please use Python3.8 or above.'
       )
 
+# checking for xterm compatibility, although this is
+# not a perfect check since $TERM is self-reported by
+# the terminal
 check('xterm-256color' in os.environ.get('TERM', ''),
       'terminal compatibility',
       'Please use an xterm-256color compatible terminal'
       ' such as MinTTY' if sys.platform == 'win32' else '.'
       )
 
+# check if curses is present
 try:
     import curses
 except:
@@ -90,6 +108,7 @@ check(curses_ok, 'if curses is present',
 
 width, height = os.get_terminal_size()
 
+# check the window size to meet the minimum size requirement
 min_width = config.board_width * 5 + 1 + 38
 min_height = config.board_height * 2 + 8
 check(
@@ -100,6 +119,12 @@ check(
     f'{" and " if width < min_width and height < min_height else ""}'
     f'{f"{min_height} ({min_height-height} more) rows" if height < min_height else ""}.'
 )
+
+if not config.silent_checks:
+    print('\033[37m')
+    print_slow("If you wish to skip the system checks dialog next time, you may run", delay = 0.005)
+    print_slow("the program with the --silent-checks flag.",delay = 0.005)
+    print('\033[0m', end = '')
 
 if config.show_animation:
     print()
@@ -129,7 +154,10 @@ if config.show_animation:
 else:
     print()
 
+# restores the default SIGINT handler
 signal.signal(signal.SIGINT, system_sigint_handler)
+
+# initializes debug print and run the program
 init_print()
 exit_message, exit_status = main()
 end_print()
@@ -141,7 +169,8 @@ if exit_message:
     if config.show_animation:
         print('\033[0;0H', end = '', flush = True)
         print(((width - 1) * ' ' + '\n') * height, end = '')
-        # clear the screen but fast
+        # clear the screen but with fast printing since the
+        # program crashed.
         print('\033[0;0H', end = '', flush = True)
     print('\033[91m' + exit_message + '\033[0m', flush = True)
 elif exit_status == 0 and config.show_animation:
@@ -170,4 +199,8 @@ elif exit_status == 0 and config.show_animation:
     # erase screen and move cursor to top left corner
     print('\033[0;0H', end = '', flush = True)
     print_slow('Thanks, Python magic. I knew you wouldn\'t fail me ⊂(´・ω・｀⊂)')
+    print('\033[37m')
+    print_slow("If you wish to skip the initialization and teardown animation next time, you ", delay = 0.005)
+    print_slow("may run the program with the --no-animation flag.", delay = 0.005)
+    print('\033[0m', end = '')
 sys.exit(exit_status)

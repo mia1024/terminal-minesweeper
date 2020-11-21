@@ -25,16 +25,21 @@ HIGHLIGHT = State.HIGHLIGHT
 FLAGGED = State.FLAGGED
 
 
-class GameOver(Exception): pass
+class GameOver(Exception):
+    """
+    This exception will be raised by a cell during the revealing routing
+    if it is a mine
+    """
 
 
 class CellMeta(type):
     """
-    A simple metaclass for the Cell class so that `Cell[y,x]` and
+    A straightforward metaclass for the Cell class so that `Cell[y,x]` and
      `(y,x) in Cell` are legal
      """
 
     def __init__(cls, *args, **kwargs):
+        """add the objs dict to the class"""
         super().__init__(*args, **kwargs)
         cls.__objs = {}
 
@@ -49,15 +54,19 @@ class CellMeta(type):
         return obj
 
     def __getitem__(cls, item):
+        """enabling Cell[y,x] and maps to the underlying object dict"""
         return cls.__objs[item]
 
     def __contains__(cls, item):
+        """enabling (y,x) in cell and maps to the underlying object dict"""
         return item in cls.__objs
 
 
 class Cell(metaclass = CellMeta):
+    """The class for a cell in on the minesweeper board"""
 
     def __init__(self, y, x):
+        """Initializes the cell"""
         self.x = x
         self.y = y
         self.state = State(0)
@@ -82,18 +91,24 @@ class Cell(metaclass = CellMeta):
 
     @property
     def is_revealed(self):
+        """returns a boolean indicating if the cell has been revealed"""
         return REVEALED in self.state
 
     @property
     def is_highlighted(self):
+        """returns a boolean indicating if the cell has been highlighted"""
         return HIGHLIGHT in self.state
 
     def highlight(self, force = False):
+        """
+        Toggles the highlghting state of the cell. blocks the highlight if the
+        cell is revealed or flagged
+        """
         if not force and not (REVEALED in self.state or FLAGGED in self.state):
             debug_print(f'{repr(self)} toggle highlight')
             self.state ^= HIGHLIGHT
         elif FLAGGED in self.state and HIGHLIGHT in self.state:
-            self.state^=HIGHLIGHT
+            self.state ^= HIGHLIGHT
 
     def reveal(self, chain = False, force = False):
         """
@@ -125,6 +140,9 @@ class Cell(metaclass = CellMeta):
         return []
 
     def __str__(self):
+        """
+        converts the cell to appropriate emoji (or not) to be displayed
+        """
         emo = config.use_emojis
         if EXPLODED in self.state:
             return '💥' if emo else '＊'
@@ -134,8 +152,6 @@ class Cell(metaclass = CellMeta):
             return '💣' if emo else 'Ｏ'
         if FLAGGED in self.state:
             return '🚩' if emo else 'Ｆ'
-        # if REVEALED in self.state and not self.value:
-        #     return '　'
         if REVEALED in self.state:
             if self.value == 0:
                 return '　'
@@ -143,10 +159,15 @@ class Cell(metaclass = CellMeta):
         return '　'
 
     def __repr__(self):
+        """
+        returns the string representation of the cell including all the necessary data
+        """
         return f'<Cell {self.value} at {(self.y, self.x)} {self.state}>'
 
     def calc_value(self):
-        """Calculate the value of the cell (the number of mines in vicinity) based on its surroundings"""
+        """
+        Calculate the value of the cell (the number of mines in vicinity) based on its surroundings
+        """
         surroundings = (
             (self.y + 1, self.x + 1),
             (self.y + 1, self.x + 0),
@@ -163,6 +184,10 @@ class Cell(metaclass = CellMeta):
                 self.surroundings.append(Cell[surr])
 
     def area_reveal(self, chain = False):
+        """
+        Reveals all the cell around this cell if the number of cells flagged
+        in its surrounding is the same as the number of mines there are
+        """
         if not REVEALED in self.state:
             return []
         flags = sum(FLAGGED in s.state for s in self.surroundings)
@@ -174,7 +199,11 @@ class Cell(metaclass = CellMeta):
         return to_reveal
 
     def __hash__(self):
-        return hash((self.y,self.x))
+        """
+        returns a hash so that the cell can be added to a hashtable
+        """
+        return self.y * config.board_height + self.x
+
 
 class Board:
     def __init__(self):
