@@ -14,7 +14,7 @@ from box import Box
 # ANSI color code for each color
 if config.dark_mode:
     FG = 255
-    BG = 232
+    BG = 237
     UI_HIGHLIGHT_FG = FG
     UI_HIGHLIGHT_BG = 242
 else:
@@ -123,8 +123,8 @@ class Widget:
             else:
                 self.parent.addstr(y + self.y, x + self.x, text, *args, **kwargs)
         except curses.error:
-            raise InsufficientScreenSpace
-            {}
+            if not config.ignore_failures:
+                raise InsufficientScreenSpace
 
     def key_event(self, y, x, keyboard, mouse):
         """placeholder function for event handling, override in subclasses"""
@@ -333,6 +333,10 @@ class GridWidget(Widget):
         # clears highlight every 50ms in case the cursor leaves the screen
         if not self.root.button2_pressed and self.root.frame_count > CellWidget.last_clear + self.root.monitor.fps/20:
             CellWidget.clear_highlight()
+            if not self.root.game_over:
+                # restore the face because we don't know
+                # if it was triggered by keyboard
+                self.root.status.status = '🙂'
 
 
 class StatusWidget(Widget):
@@ -608,11 +612,9 @@ class RootWidget(Widget):
 
         # do the surprised face
         if not self.game_over:
-            if MouseEvent.BUTTON2_PRESSED in mouse:
+            if MouseEvent.BUTTON2_PRESSED in mouse or keyboard==' ':
                 self.status.status = '😲'
-
-            if MouseEvent.BUTTON2_RELEASED in mouse:
-                self.status.status = '🙂'
+{}
 
 
 def mainloop(win: curses.window):

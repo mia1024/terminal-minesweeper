@@ -120,11 +120,6 @@ check(
     f'{f"{min_height} ({min_height-height} more) rows" if height < min_height else ""}.'
 )
 
-if not config.silent_checks:
-    print('\033[37m')
-    print_slow("If you wish to skip the system checks dialog next time, you may run", delay = 0.005)
-    print_slow("the program with the --silent-checks flag.",delay = 0.005)
-    print('\033[0m', end = '')
 
 if config.show_animation:
     print()
@@ -199,8 +194,4 @@ elif exit_status == 0 and config.show_animation:
     # erase screen and move cursor to top left corner
     print('\033[0;0H', end = '', flush = True)
     print_slow('Thanks, Python magic. I knew you wouldn\'t fail me ⊂(´・ω・｀⊂)')
-    print('\033[37m')
-    print_slow("If you wish to skip the initialization and teardown animation next time, you ", delay = 0.005)
-    print_slow("may run the program with the --no-animation flag.", delay = 0.005)
-    print('\033[0m', end = '')
 sys.exit(exit_status)
