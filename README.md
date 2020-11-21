@@ -7,7 +7,7 @@ look significantly better
 
 ![](screenshots/area_highlight.png)
 
-It also has a dark mode for people who don't want to embrace the lord of the light
+It also has a dark mode for people who refuses to embrace the Lord of Light
 
 ![](screenshots/darkmode.png)
 
