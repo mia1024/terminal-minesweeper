@@ -126,17 +126,38 @@ class Widget:
             if not config.ignore_failures:
                 raise InsufficientScreenSpace
 
-    def key_event(self, y, x, keyboard, mouse):
-        """placeholder function for event handling, override in subclasses"""
+    def mouse_event(self, y, x, mouse):
+        """
+        placeholder function for mouse event handling, override in subclasses
+        """
 
-    def dispatch_event(self, y, x, keyboard, mouse):
+    def keyboard_event(self, key):
+        """
+        placeholder function for keyboard event handling, override in subclasses
+        """
+
+    def dispatch_event(self, etype, *args):
+        """
+        dispatch the event of given type (mouse or keyboard) to all the child
+        widgets recursively, then to self.
+        """
+
+        # debug_print(f'Dispatching event {etype} {args}')
+
         # widgets should receive events before the background
-        # if not isinstance(self, RootWidget):
-        #     debug_print(self.__class__, 'received event', (y, x), key)
-        for w in self.subwidgets:
-            if y >= w.y and x >= w.x:
-                w.dispatch_event(y - w.y, x - w.x, keyboard, mouse)
-        self.key_event(y, x, keyboard, mouse)
+        if etype == 'mouse':
+            y, x, mouse = args
+            for w in self.subwidgets:
+                if y >= w.y and x >= w.x:
+                    # coordinate translation
+                    w.dispatch_event('mouse', y - w.y, x - w.x, mouse)
+            self.mouse_event(*args)
+        elif etype == 'keyboard':
+            # keyboard event should not be unconditionally passed to
+            # children because they won't know who should receive it
+            self.keyboard_event(*args)
+        else:
+            raise ValueError(f"Unknown event type {etype}")
 
     def render(self):
         """placeholder function for rendering, override in subclasses"""
@@ -175,56 +196,102 @@ class CellWidget(Widget):
             cls.highlighted.pop().highlight()
         cls.last_clear = cls.root.frame_count
 
-    def key_event(self, y, x, keyboard, mouse):
-        """handles the various game events"""
+    def area_reveal(self):
+        """
+        Attempts to reveals the 3x3 area centered at self,
+        which will succeed only if the number of flags around
+        self is the same as the value of self. clears prevous highlights.
+        """
+        debug_print(f'{repr(self.cell)}: area reveal')
+        self.clear_highlight()
+        self.cell.area_reveal(True)
+
+    def area_highlight(self):
+        """
+        highlights the 3x3 area centered at self, excluding
+        any flagged or revealed cell. clears previous highlights.
+        """
+        debug_print(f'{repr(self.cell)}: area highlight')
+        self.clear_highlight()
+        for c in self.cell.surroundings:
+            c.highlight()
+            self.highlighted.add(c)
+        self.cell.highlight()
+        self.highlighted.add(self.cell)
+
+    def reveal(self):
+        """
+        reveals self. may raise GameOver exception if self is a mine
+        """
+        debug_print(f'{repr(self.cell)}: reveal')
+        if self.root.game_start:
+            self.root.game_start = False
+            self.root.game_over = False
+            self.root.time_started = datetime.datetime.now()
+            self.root.board.init_mines(self.cell)
+        self.cell.reveal(True)
+
+    def flag(self):
+        """
+        flags self and clear highlight on self
+        """
+        debug_print(f'{repr(self.cell)}: flag')
+        if not self.root.game_start and not self.root.game_over:
+            self.cell.flag()
+
+    def highlight(self, force = False):
+        """
+        highlights self and adds self to the set of highlighted cells
+        """
+        if not self.cell.is_highlighted:
+            self.cell.highlight(force)
+            self.highlighted.add(self.cell)
+
+    def mouse_event(self, y, x, mouse):
+        """
+        handles various mouse events
+        """
 
         if (y != 0 or x > 4) or (Widget.root.game_over and not Widget.root.game_start):
             # ignores the event as it is not relevant
             return
 
-        keyboard = keyboard.lower()
-        if keyboard != '\0' or mouse!=0:
-            debug_print(f"Event in {repr(self.cell)}: {(self.y, self.x)} '{keyboard}' {mouse}")
-
-        if (MouseEvent.BUTTON2_RELEASED in mouse) or keyboard == ' ':
+        if (MouseEvent.BUTTON2_RELEASED in mouse):
             # handles area reveal
-            debug_print(f'{repr(self.cell)} area reveal')
-            self.clear_highlight()
-            self.cell.area_reveal(True)
+            self.area_reveal()
 
         if (MouseEvent.BUTTON2_PRESSED in mouse or
-            (self.root.button2_pressed and MouseEvent.DRAG in mouse) or
-            keyboard==' '):
+                (self.root.button2_pressed and MouseEvent.DRAG in mouse)):
             # handles area highlight
-            debug_print(f'{repr(self.cell)} area highlight')
-            self.clear_highlight()
-            for c in self.cell.surroundings:
-                c.highlight()
-                self.highlighted.add(c)
-            self.cell.highlight()
-            self.highlighted.add(self.cell)
+            self.area_highlight()
 
-        if MouseEvent.BUTTON1_RELEASED in mouse or keyboard == 'r':
+        if MouseEvent.BUTTON1_RELEASED in mouse:
             # reveal the cell (GameOver exception will be caught in root)
-            debug_print(f'{repr(self.cell)} reveal')
-            if self.root.game_start:
-                self.root.game_start = False
-                self.root.game_over = False
-                self.root.time_started = datetime.datetime.now()
-                self.root.board.init_mines(self.cell)
-            self.cell.reveal(True)
-        if MouseEvent.BUTTON3_RELEASED in mouse or keyboard == 'f':
-            # flag a cell
-            debug_print(f'{repr(self.cell)}: {(self.y, self.x)} flag')
-            if not self.root.game_start and not self.root.game_over:
-                self.cell.flag()
+            self.reveal()
 
-        if not self.cell.is_highlighted:
-            self.cell.highlight()
-            self.highlighted.add(self.cell)
+        if MouseEvent.BUTTON3_RELEASED in mouse:
+            # flag a cell
+            self.flag()
+
+        self.highlight()
+        self.parent.selected_cell = self.cell.y * self.parent.board.width + self.cell.x
+
+    def keyboard_event(self, key):
+        """
+        handles keyboard events for the cell
+        """
+        if key == ' ':
+            self.area_reveal()
+            self.area_highlight()
+        elif key == 'q':
+            self.reveal()
+        elif key == 'r':
+            self.flag()
 
     def render(self):
-        """renders the cell"""
+        """
+        renders the cell
+        """
 
         try:
             v = int(str(self.cell))  # a quick test for non-numbered cell
@@ -237,7 +304,7 @@ class CellWidget(Widget):
             if self.cell.is_highlighted:
                 self.addstr(0, 0, ' ', curses.color_pair(UI_HIGHLIGHT))
                 self.addstr(0, 3, ' ', curses.color_pair(UI_HIGHLIGHT))
-            attrs = curses.color_pair(cell_color(self.cell.value, self.cell.is_highlighted))
+            attrs = curses.color_pair(cell_color(v, self.cell.is_highlighted))
             attrs |= curses.A_BOLD  # make them bold
             self.addstr(0, 1, self.cell, attrs)
 
@@ -261,25 +328,29 @@ class GridWidget(Widget):
         self.board = board
         for cell in board.cells:
             self.subwidgets.append(CellWidget(self, cell.y * 2 + 1, cell.x * 5 + 1, cell))
+        self.selected_cell = 0
 
     def render(self):
+        """
+        renders the grid. this function is probably the most computationally
+        heavy function of the entire program and takes the most amount of
+        rendering time due to several double for loops.
+        """
+
         width = self.board.width * 5 + 1
         height = self.board.height * 2 + 1
 
         # paint the entire board excluding the 4 corners
         for x in range(self.board.width - 1):
             for y in range(self.board.height - 1):
-                cluster = (self.board[y + 0, x + 0], self.board[y + 0, x + 1],
-                           self.board[y + 1, x + 0], self.board[y + 1, x + 1])
-
                 # the grid is divided into 2x2 clusters so that the character of
                 # the center can be calculated, kinda like the convolution in
                 # a CNN
 
-                tl = not cluster[0].is_revealed  # top left
-                tr = not cluster[1].is_revealed  # top right
-                bl = not cluster[2].is_revealed  # bottom left
-                br = not cluster[3].is_revealed  # bottom right
+                tl = not self.board[y, x].is_revealed  # top left
+                tr = not self.board[y, x + 1].is_revealed  # top right
+                bl = not self.board[y + 1, x].is_revealed  # bottom left
+                br = not self.board[y + 1, x + 1].is_revealed  # bottom right
 
                 # special case for first column
                 if not x:
@@ -327,16 +398,40 @@ class GridWidget(Widget):
         self.addstr(height - 1, 0, Box.up(bl).right(bl))
         self.addstr(height - 1, width - 1, Box.up(br).left(br))
 
+        if self.root.keyboard_mode:
+            self.subwidgets[self.selected_cell].highlight(True)
+
         for w in self.subwidgets:
             w.render()
 
         # clears highlight every 50ms in case the cursor leaves the screen
-        if not self.root.button2_pressed and self.root.frame_count > CellWidget.last_clear + self.root.monitor.fps/20:
+        if not self.root.button2_pressed and self.root.frame_count > CellWidget.last_clear + self.root.monitor.fps / 20:
             CellWidget.clear_highlight()
             if not self.root.game_over:
                 # restore the face because we don't know
                 # if it was triggered by keyboard
                 self.root.status.status = '🙂'
+
+    def keyboard_event(self, key):
+        """
+        handles keyboard event for the grid, also controls
+        whether the program is in keyboard-only mode
+        """
+        cell_count = len(self.subwidgets)
+        if key in ('up', 'w'):
+            self.selected_cell -= self.board.width
+        elif key in ('down', 's'):
+            self.selected_cell += self.board.width
+        elif key in ('left', 'a'):
+            self.selected_cell -= 1
+        elif key in ('right', 'd'):
+            self.selected_cell += 1
+        else:
+            self.subwidgets[self.selected_cell].keyboard_event(key)
+            return
+
+        self.root.keyboard_mode = True
+        self.selected_cell %= cell_count  # prevent index error
 
 
 class StatusWidget(Widget):
@@ -353,7 +448,7 @@ class StatusWidget(Widget):
         super().__init__(parent, y, x)
         self.status = '🙂'
 
-    def key_event(self, y, x, keyboard, mouse):
+    def mouse_event(self, y, x, mouse):
         """handles left click on the face (restart)"""
         if (MouseEvent.BUTTON1_PRESSED in mouse
                 and y == 0 and x <= 2
@@ -385,16 +480,16 @@ class RootWidget(Widget):
         self.subwidgets.append(self.grid)
 
         # initializes the status widget (the right sidebar)
-        self.status_x_offset = self.grid.x + self.board.width * 5 + 4
-        self.status_y_offset = self.grid.y + 1
-        self.status = StatusWidget(self, self.status_y_offset + 1, self.status_x_offset + 12)
+        self.status_x_offset = 5 + self.board.width * 5 + 4
+        self.status_y_offset = 4
+        self.status = StatusWidget(self, self.status_y_offset + 1, self.status_x_offset + 14)
         self.subwidgets.append(self.status)
 
         # some useful variables
         self.should_exit = False
         self.game_start = True
         self.game_over = True
-        self.time_taken = '00:00.000'
+        self.time_taken = '00:00.00'
         self.time_started = datetime.datetime.now()
 
         self.frame_count = 0
@@ -402,6 +497,8 @@ class RootWidget(Widget):
         self.button1_pressed = False
         self.button2_pressed = False
         self.button3_pressed = False
+
+        self.keyboard_mode = True
 
         Widget.root = self
 
@@ -418,7 +515,7 @@ class RootWidget(Widget):
         self.game_start = True
         self.board.reset()
         self.game_over = True
-        self.time_taken = '00:00.000'
+        self.time_taken = '00:00.00'
         self.status.status = '🙂'
 
     def paint_window(self):
@@ -447,9 +544,8 @@ class RootWidget(Widget):
 
         # handles mouse input
         if ch == curses.KEY_MOUSE:
-            keyboard = '\0'
             try:
-                _, self.mouse_x, self.mouse_y, z, mouse_button = curses.getmouse()
+                _, mouse_x, mouse_y, z, mouse_button = curses.getmouse()
                 mouse = MouseEvent(mouse_button)
 
                 # curses can't recognized any tracking (1003) mode, so it
@@ -494,18 +590,36 @@ class RootWidget(Widget):
                         mouse &= ~MouseEvent.BUTTON3_RELEASED
                     else:
                         self.button3_pressed = False
+
+                if mouse_x != self.mouse_x or mouse_y != self.mouse_y or mouse:
+                    self.keyboard_mode = False
+                self.mouse_y, self.mouse_x = mouse_y, mouse_x
             except curses.error:
                 mouse = MouseEvent(0)
+            etype = 'mouse'
+            args = (self.mouse_y, self.mouse_x, mouse)
         else:
             # keyboard input
-            mouse = MouseEvent(0)
             if ch == -1 or self.button2_pressed:
-                # block middle button pasting on linux
-                keyboard = '\0'
+                # block middle button paste on linux
+                char = '\0'
             else:
-                keyboard = chr(ch)
+                char = {curses.KEY_UP   : 'up',
+                        curses.KEY_DOWN : 'down',
+                        curses.KEY_LEFT : 'left',
+                        curses.KEY_RIGHT: 'right', }.get(ch, chr(ch).lower())
+            etype = 'keyboard'
+            args = (char,)
+
         try:
-            self.dispatch_event(self.mouse_y, self.mouse_x, keyboard, mouse)
+            if etype == 'keyboard' and char != '\0':
+                self.dispatch_event('keyboard', *args)
+            elif etype == 'mouse':
+                self.dispatch_event('mouse', *args)
+            elif not self.keyboard_mode:
+                # hover
+                self.dispatch_event('mouse', self.mouse_y, self.mouse_x, MouseEvent(0))
+
         except GameOver as exc:
             self.game_over = True
             self.status.status = '😵'
@@ -539,37 +653,42 @@ class RootWidget(Widget):
         if not self.game_over:
             time_taken = datetime.datetime.now() - self.time_started
             minute, second = divmod(time_taken.seconds, 60)
-            msec = str(time_taken.microseconds).zfill(3)[:3]
+            msec = str(time_taken.microseconds).zfill(2)[:2]
             self.time_taken = f'{minute:0>2}:{second:0>2}.{msec}'
 
-        self.addstr(self.status_y_offset, self.status_x_offset + 9, self.time_taken)
-        self.addstr(self.status_y_offset + 3, self.status_x_offset, '        Operations:')
-        self.addstr(self.status_y_offset + 4, self.status_x_offset, 'Reveal cell    [LMB]/[R] ')
-        self.addstr(self.status_y_offset + 5, self.status_x_offset, 'Reveal area    [MMB]/[Space]')
-        self.addstr(self.status_y_offset + 6, self.status_x_offset, 'Flag cell      [RMB]/[F] ')
-        self.addstr(self.status_y_offset + 7, self.status_x_offset, 'Restart        [Enter]')
-        self.addstr(self.status_y_offset + 8, self.status_x_offset, 'Toggle emojis  [T] ')
+        self.addstr(self.status_y_offset, self.status_x_offset + 11, self.time_taken)
+
+        self.addstr(self.status_y_offset + 3, self.status_x_offset, '          Navigation')
+        self.addstr(self.status_y_offset + 4, self.status_x_offset, '   [W]        [↑]      Move   ')
+        self.addstr(self.status_y_offset + 5, self.status_x_offset, '[A][S][D]  [←][↓][→]  cursor   ')
+
+        self.addstr(self.status_y_offset + 7, self.status_x_offset, '          Operation')
+        self.addstr(self.status_y_offset + 8, self.status_x_offset, 'Reveal cell       [LMB]/[Q] ')
+        self.addstr(self.status_y_offset + 9, self.status_x_offset, 'Reveal area       [MMB]/[Space]')
+        self.addstr(self.status_y_offset + 10, self.status_x_offset, 'Flag cell         [RMB]/[R] ')
+        self.addstr(self.status_y_offset + 11, self.status_x_offset, 'Restart           [Enter]')
+        self.addstr(self.status_y_offset + 12, self.status_x_offset, 'Toggle emojis     [T] ')
 
         emo = config.use_emojis
-        self.addstr(self.status_y_offset + 10, self.status_x_offset + 10, 'Symbols')
-        self.addstr(self.status_y_offset + 11, self.status_x_offset + 5, ('💥' if emo else '＊') + ' Exploded mine')
-        self.addstr(self.status_y_offset + 12, self.status_x_offset + 5, ('🏁' if emo else 'Ｘ') + ' Flagged mine')
-        self.addstr(self.status_y_offset + 13, self.status_x_offset + 5, ('💣' if emo else 'Ｏ') + ' Unflagged mine')
-        self.addstr(self.status_y_offset + 14, self.status_x_offset + 5, ('🚩' if emo else 'Ｆ') + ' Flag')
+        self.addstr(self.status_y_offset + 14, self.status_x_offset + 11, 'Symbols')
+        self.addstr(self.status_y_offset + 15, self.status_x_offset + 6, ('💥' if emo else '＊') + ' Exploded mine')
+        self.addstr(self.status_y_offset + 16, self.status_x_offset + 6, ('🏁' if emo else 'Ｘ') + ' Flagged mine')
+        self.addstr(self.status_y_offset + 17, self.status_x_offset + 6, ('💣' if emo else 'Ｏ') + ' Unflagged mine')
+        self.addstr(self.status_y_offset + 18, self.status_x_offset + 6, ('🚩' if emo else 'Ｆ') + ' Flag')
 
         # flag counts
         flags = config.mine_count - self.board.flag_count()
         if config.use_emojis:
             if flags <= 10:
-                self.addstr(self.status_y_offset + 16,
+                self.addstr(self.status_y_offset + 20,
                             self.status_x_offset + 14 - flags,
                             '🚩' * (config.mine_count - self.board.flag_count()))
             else:
-                self.addstr(self.status_y_offset + 16,
+                self.addstr(self.status_y_offset + 20,
                             self.status_x_offset + 10,
                             f'🚩 × {flags}')
         else:
-            self.addstr(self.status_y_offset + 16,
+            self.addstr(self.status_y_offset + 20,
                         self.status_x_offset + 10,
                         f'Ｆ × {flags}')
 
@@ -597,13 +716,8 @@ class RootWidget(Widget):
         # debug_print('Window render')
         self.window.refresh()
 
-    def key_event(self, y, x, keyboard, mouse):
-        """handles key events for root"""
-
-        if keyboard == 't':  # toggle emojis
-            config.use_emojis = bool(1 - config.use_emojis)
-        elif keyboard == '\n':
-            self.restart()
+    def mouse_event(self, y, x, mouse):
+        """handles mouse events for root"""
 
         # handling close button
         if y == 1 and 2 <= x <= 5:
@@ -612,9 +726,24 @@ class RootWidget(Widget):
 
         # do the surprised face
         if not self.game_over:
-            if MouseEvent.BUTTON2_PRESSED in mouse or keyboard==' ':
+            if MouseEvent.BUTTON2_PRESSED in mouse:
                 self.status.status = '😲'
-{}
+
+    def keyboard_event(self, key):
+        """
+        handle keyboard events for root
+        """
+
+        if key == 't':  # toggle emojis
+            config.use_emojis = bool(1 - config.use_emojis)
+        elif key == '\n':
+            self.restart()
+        elif key == ' ':
+            if not self.game_over:
+                self.status.status = '😲'
+
+        for w in self.subwidgets:
+            w.dispatch_event('keyboard', key)
 
 
 def mainloop(win: curses.window):
@@ -676,7 +805,7 @@ def main():
         stdscr = curses.initscr()
         curses.flushinp()
     except curses.error:
-        return 'Cannot initialize curses', 1
+        return 'Cannot initialize curses window', 1
 
     exit_message = None
     exit_status = 0

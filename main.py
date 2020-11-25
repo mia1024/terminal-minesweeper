@@ -4,7 +4,7 @@ import sys
 import time
 
 from config import config
-from debug import init_print,end_print
+from debug import init_print, end_print
 
 
 def sigint_handler(signum, frame):
@@ -76,7 +76,6 @@ if not config.silent_checks:
         print_slow('To see a list of possible options, run this program with --help.')
     print_slow('\nCommencing system check.')
 
-
 # checking for python3.8 (3.7 doesn't work)
 v = sys.version_info
 check(v.major == 3 and v.minor >= 8,
@@ -109,17 +108,16 @@ check(curses_ok, 'if curses is present',
 width, height = os.get_terminal_size()
 
 # check the window size to meet the minimum size requirement
-min_width = config.board_width * 5 + 1 + 38
-min_height = config.board_height * 2 + 8
+min_width = config.board_width * 5 + 1 + 41
+min_height = max(config.board_height * 2 + 8, 26)
 check(
     width >= min_width and height >= min_height,
     'window size',
     f'Please make sure your terminal window has at least '
     f'{f"{min_width} ({min_width - width} more) columns" if width < min_width else ""}'
     f'{" and " if width < min_width and height < min_height else ""}'
-    f'{f"{min_height} ({min_height-height} more) rows" if height < min_height else ""}.'
+    f'{f"{min_height} ({min_height - height} more) rows" if height < min_height else ""}.'
 )
-
 
 if config.show_animation:
     print()

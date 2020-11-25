@@ -13,7 +13,8 @@ in bash. Then, run this program with the --debug flag.
 
 import os
 from config import Config
-config=Config()
+
+config = Config()
 
 fd = 0
 
@@ -35,7 +36,7 @@ def debug_print(*args, end = '\n', sep = ' '):
     ignores all invocations unless debug mode is set.
     """
     if config.debug:
-        os.write(fd, sep.join(map(str,args)).encode())
+        os.write(fd, sep.join(map(str, args)).encode())
         os.write(fd, end.encode())
 
 
@@ -46,4 +47,3 @@ def end_print():
     """
     if config.debug:
         os.close(fd)
-

@@ -104,11 +104,15 @@ class Cell(metaclass = CellMeta):
         Toggles the highlghting state of the cell. blocks the highlight if the
         cell is revealed or flagged
         """
-        if not force and not (REVEALED in self.state or FLAGGED in self.state):
+        if force:
+            debug_print(f'{repr(self)} toggle highlight (force)')
+            self.state ^= HIGHLIGHT
+        elif not (REVEALED in self.state or FLAGGED in self.state):
             debug_print(f'{repr(self)} toggle highlight')
             self.state ^= HIGHLIGHT
-        elif FLAGGED in self.state and HIGHLIGHT in self.state:
-            self.state ^= HIGHLIGHT
+        else:
+            debug_print(f'{repr(self)} remove highlight')
+            self.state &= ~HIGHLIGHT
 
     def reveal(self, chain = False, force = False):
         """
