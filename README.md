@@ -5,11 +5,11 @@ minesweeper implementations? Here you go, that's what terminal minesweeper is he
 in Python with curses and no third party library. Compared to other implementations, this program undoubtedly
 look significantly better
 
-![](screenshots/area_highlight.png)
+![](screenshots/light_mode.png)
 
 It also has a dark mode for people who refuses to embrace the Lord of Light
 
-![](screenshots/darkmode.png)
+![](screenshots/dark_mode.png)
 
 It supports all minesweeper operations including area reveals and highlights. So, what are you waiting for?
 Let's sweep some mines!
@@ -20,9 +20,42 @@ git clone git@github.com:mia1024/terminal-minesweeper
 python3 terminal-minesweeper # no need for cd
 ```
 
+- OS and Terminal Compatibilities (only showing tested combinations)
+    - macOS
+        - Terminal
+            - ✅ Keyboard
+            - ✅ Mouse
+        - iTerm2
+            - ✅ Keyboard
+            - ✅ Mouse (right click does not go through)
+    - Arch Linux
+        - Konsole
+            - ✅ Keyboard
+            - ❌ Mouse (due to an [unresolved bug in KDE](https://bugs.kde.org/show_bug.cgi?id=423333))
+        - Terminator
+            - ✅ Keyboard
+            - ✅ Mouse
+    - Windows 10
+        - Command Prompt
+            - ❌ Keyboard
+            - ❌ Mouse
+        - PowerShell
+            - ❌ Keyboard
+            - ❌ Mouse
+        - Windows Terminal 
+            - ❌ Keyboard
+            - ❌ Mouse
+        - MinTTY
+            - ❌ Keyboard
+            - ❌ Mouse
+    - WSL 2 (Ubuntu)
+        - Windows Terminal
+            - ✅ Keyboard
+            - ✅ Mouse
+
 ## Usage
 ```
-usage: terminal-minesweeper [-e | -i | -h | -c WIDTH HEIGHT MINES] [-d]
+usage: minesweeper [-e | -i | -h | -c WIDTH HEIGHT MINES] [-d]
                             [-f FRAMERATE] [--silent-checks] [--no-animation]
                             [-q] [--ignore-failures] [--no-emoji] [--debug]
                             [--help]
@@ -58,15 +91,11 @@ Options:
 ## Notes about terminals
 
 This program is tested with Terminator and Konsole on Arch Linux 2020.10, Python3.8 and 3.9,
-iTerm2 and Terminal on MacOS 10.14.6, Python3.8 and 3.9. I don't have access to a Windows computer so 
-I didn't tested it on Windows, but I guess it won't run because curses on Windows is weird.
+iTerm2 and Terminal on MacOS 10.14.6, Python3.8 and 3.9, minTTY and Windows Terminal on Windows 10, Python3.9.
 
 This program relies heavily on a the any-events (1003) mouse reporting mode of xterm, which is not implemented
 on all terminals. Specifically, a [known bug in KDE](https://bugs.kde.org/show_bug.cgi?id=423333) prevents the mouse
 from interfacing correctly with this program in Konsole.
-
-The popular terminal on MacOS, iTerm2, intercepts right clicking events. This means that you won't be able to flag
-cells in iTerm2 with your mouse. However, you can still use the keyboard shortcut (F) for it. 
 
 The built-in terminal on MacOS surprisingly does pass the right click events to the program. However, for the program 
 to function correctly, you have to make sure that mouse-reporting is enabled (Under View -> Allow Mouse Reporting 
@@ -74,3 +103,6 @@ or Cmd-R to toggle). Strangely, when I tested the program with a trackpad I had 
 to pass in the left-click event, but not the right-click. 
 
 This program works perfectly in Terminator. 
+
+This program does not work on Windows with either minTTY or Windows Terminal due to the lack of curses support on 
+Windows. However, it did run with WSL2 + Ubuntu 18.04 and Windows Terminal, although the animation was a bit weird.

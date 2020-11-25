@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+
+from minesweeper import main
+main.run()

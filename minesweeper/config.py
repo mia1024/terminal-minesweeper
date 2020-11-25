@@ -51,7 +51,7 @@ class Config(metaclass = SingletonMeta):
 
 
 config = Config()
-parser = argparse.ArgumentParser(prog = 'terminal-minesweeper', add_help = False)
+parser = argparse.ArgumentParser(prog = 'minesweeper', add_help = False)
 g = parser.add_argument_group('Options')
 group = g.add_mutually_exclusive_group()
 group.add_argument('-e', '--easy', action = 'store_true',

@@ -1,8 +1,8 @@
 import random
 from enum import IntFlag
 from typing import List
-from config import Config
-from debug import debug_print
+from .config import Config
+from .debug import debug_print
 
 config = Config()
 

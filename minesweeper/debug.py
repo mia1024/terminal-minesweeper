@@ -12,7 +12,7 @@ in bash. Then, run this program with the --debug flag.
 """
 
 import os
-from config import Config
+from .config import Config
 
 config = Config()
 

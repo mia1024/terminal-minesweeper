@@ -5,11 +5,11 @@ import time
 import traceback
 import sys
 from math import ceil, floor
-from board import Board, Cell, GameOver
-from config import config
-from debug import debug_print as _debug_print
+from .board import Board, Cell, GameOver
+from .config import config
+from .debug import debug_print as _debug_print
 from enum import IntFlag
-from box import Box
+from .box import Box
 
 # ANSI color code for each color
 if config.dark_mode:
