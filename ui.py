@@ -285,7 +285,7 @@ class CellWidget(Widget):
             self.area_highlight()
         elif key == 'q':
             self.reveal()
-        elif key == 'r':
+        elif key == 'e':
             self.flag()
 
     def render(self):
@@ -659,13 +659,13 @@ class RootWidget(Widget):
         self.addstr(self.status_y_offset, self.status_x_offset + 11, self.time_taken)
 
         self.addstr(self.status_y_offset + 3, self.status_x_offset, '          Navigation')
-        self.addstr(self.status_y_offset + 4, self.status_x_offset, '   [W]        [↑]      Move   ')
-        self.addstr(self.status_y_offset + 5, self.status_x_offset, '[A][S][D]  [←][↓][→]  cursor   ')
+        self.addstr(self.status_y_offset + 4, self.status_x_offset, '   [W]        [↑]      Move ')
+        self.addstr(self.status_y_offset + 5, self.status_x_offset, '[A][S][D]  [←][↓][→]  cursor')
 
         self.addstr(self.status_y_offset + 7, self.status_x_offset, '          Operation')
         self.addstr(self.status_y_offset + 8, self.status_x_offset, 'Reveal cell       [LMB]/[Q] ')
         self.addstr(self.status_y_offset + 9, self.status_x_offset, 'Reveal area       [MMB]/[Space]')
-        self.addstr(self.status_y_offset + 10, self.status_x_offset, 'Flag cell         [RMB]/[R] ')
+        self.addstr(self.status_y_offset + 10, self.status_x_offset, 'Flag cell         [RMB]/[E] ')
         self.addstr(self.status_y_offset + 11, self.status_x_offset, 'Restart           [Enter]')
         self.addstr(self.status_y_offset + 12, self.status_x_offset, 'Toggle emojis     [T] ')
 
