@@ -15,47 +15,60 @@ It supports all minesweeper operations including area reveals and highlights. So
 Let's sweep some mines!
 
 ## Install
+
+From PyPI
+
 ```sh
+python3 -m pip install terminal-minesweeper
+```
+
+Or, to install from source
+
+```sh
+git clone git@github.com:mia1024/terminal-minesweeper
+cd terminal-minesweeper
 python3 setup.py install
-# then you can either run with 
-python3 -m minesweeper 
-# or 
+```
+
+## Run the game
+
+```sh
 minesweeper
 ```
 
-- OS and Terminal Compatibilities (only showing tested combinations)
-    - macOS
-        - Terminal
-            - ✅ Keyboard
-            - ✅ Mouse
-        - iTerm2
-            - ✅ Keyboard
-            - ✅ Mouse (right click does not go through)
-    - Arch Linux
-        - Konsole
-            - ✅ Keyboard
-            - ❌ Mouse (due to an [unresolved bug in KDE](https://bugs.kde.org/show_bug.cgi?id=423333))
-        - Terminator
-            - ✅ Keyboard
-            - ✅ Mouse
-    - Windows 10
-        - Command Prompt
-            - ❌ Keyboard
-            - ❌ Mouse
-        - PowerShell
-            - ❌ Keyboard
-            - ❌ Mouse
-        - Windows Terminal 
-            - ❌ Keyboard
-            - ❌ Mouse
-        - MinTTY
-            - ❌ Keyboard
-            - ❌ Mouse
-    - WSL 2 (Ubuntu)
-        - Windows Terminal
-            - ✅ Keyboard
-            - ✅ Mouse
+Or, inside the cloned source directory
 
+```sh
+python3 -m minesweeper
+```
+
+A full list of command line options are included at the end of this document, which is the same as the one obtained with `minesweeper --help`. 
+
+To skip the intro animations, run `minesweeper -q`. 
+
+## Terminal Compatibilities
+
+The following terminals are tested. Untested terminals may or may not work. 
+
+Testing environments: 
+    - macOS: 10.14.6, Python 3.8.0
+    - Linux: Arch Linux 2020.11, Python 3.9.0
+    - Windows: Windows 10 2004, Python 3.8.5
+    - WSL: Ubuntu 20.04, Python 3.8.5
+
+|                            | Keyboard | Mouse | Note                                                                                                                                     |
+|----------------------------|----------|-------|------------------------------------------------------------------------------------------------------------------------------------------|
+| Terminal (macOS)           | ✅        | ✅     | On trackpad, left click requires double clicking                                                                                         |
+| iTerm2 (macOS)             | ✅        | ✅     | Right click opens up the iTerm menu instead of flagging the cell                                                                         |
+|                            |          |       |                                                                                                                                          |
+| Konsole (Linux)            | ✅        | ✅     | Does not highlight cell on hover due to an [open bug in KDE](https://bugs.kde.org/show_bug.cgi?id=423333), but you can still click on the cells |
+| Terminator (Linux)         | ✅        | ✅     |                                                                                                                                          |
+|                            |          |       |                                                                                                                                          |
+| cmd.exe (Windows)          | ✅        | ✅     | Except, `cmd.exe` doesn't display Unicode characters so you basically can't play it even under the alternative non-emoji mode.           |
+| powershell.exe (Windows)   | ✅        | ✅     | See note above for `cmd.exe`                                                                                                             |
+| Windows Terminal (Windows) | ❌        | ✅     |                                                                                                                                          |
+|                            |          |       |                                                                                                                                          |
+| Windows Terminal (WSL 2)   | ✅        | ✅     |                                                                                                                                          |
 ## Usage
 ```
 usage: minesweeper [-e | -i | -h | -c WIDTH HEIGHT MINES] [-d]
@@ -90,22 +103,3 @@ Options:
   --debug               Enable debug mode.
   --help                Show this help message and exit.
 ```
-
-## Notes about terminals
-
-This program is tested with Terminator and Konsole on Arch Linux 2020.10, Python3.8 and 3.9,
-iTerm2 and Terminal on MacOS 10.14.6, Python3.8 and 3.9, minTTY and Windows Terminal on Windows 10, Python3.9.
-
-This program relies heavily on a the any-events (1003) mouse reporting mode of xterm, which is not implemented
-on all terminals. Specifically, a [known bug in KDE](https://bugs.kde.org/show_bug.cgi?id=423333) prevents the mouse
-from interfacing correctly with this program in Konsole.
-
-The built-in terminal on MacOS surprisingly does pass the right click events to the program. However, for the program 
-to function correctly, you have to make sure that mouse-reporting is enabled (Under View -> Allow Mouse Reporting 
-or Cmd-R to toggle). Strangely, when I tested the program with a trackpad I had to click twice for the terminal 
-to pass in the left-click event, but not the right-click. 
-
-This program works perfectly in Terminator. 
-
-This program does not work on Windows with either minTTY or Windows Terminal due to the lack of curses support on 
-Windows. However, it did run with WSL2 + Ubuntu 18.04 and Windows Terminal, although the animation was a bit weird.
