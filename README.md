@@ -14,10 +14,13 @@ It also has a dark mode for people who refuses to embrace the Lord of Light
 It supports all minesweeper operations including area reveals and highlights. So, what are you waiting for?
 Let's sweep some mines!
 
-## Run
+## Install
 ```sh
-git clone git@github.com:mia1024/terminal-minesweeper
-python3 terminal-minesweeper # no need for cd
+python3 setup.py install
+# then you can either run with 
+python3 -m minesweeper 
+# or 
+minesweeper
 ```
 
 - OS and Terminal Compatibilities (only showing tested combinations)

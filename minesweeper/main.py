@@ -83,15 +83,6 @@ def run():
           'Please use Python3.8 or above.'
           )
 
-    # checking for xterm compatibility, although this is
-    # not a perfect check since $TERM is self-reported by
-    # the terminal
-    check('xterm-256color' in os.environ.get('TERM', ''),
-          'terminal compatibility',
-          'Please use an xterm-256color compatible terminal'
-          ' such as MinTTY' if sys.platform == 'win32' else '.'
-          )
-
     # check if curses is present
     try:
         import curses
@@ -128,7 +119,7 @@ def run():
         print_slow(r'Printing a window in the hope that it will come into life ◦°˚\(*❛ ‿ ❛)/˚°◦')
         print_slow('Please lend me your power, Python magic!\nBalabala pew (∩^o^)⊃━☆゜.*', trailing_newline = False)
 
-    from ui import main, calc_first_frame, FG, BG
+    from .ui import main, calc_first_frame, FG, BG
 
     # only import everything after the system checks so we don't get random
     # SyntaxError or NameError for lower python versions

@@ -40,7 +40,8 @@ MouseEvent = IntFlag('MouseEvent',
 
 def cell_color(value, highlight):
     """Calculates the color index of the given cell value and highlight state"""
-    return (value << 3) + (highlight << 2)
+    return (value << 3) + (highlight << 2) + 0b11 
+    # at value = 0, highlight = 0 this will start from 3
 
 
 def debug_print(*args, **kwargs):
@@ -833,7 +834,7 @@ def main():
         for i in range(8):
             curses.init_pair(cell_color(i, True), VALUES[i], UI_HIGHLIGHT_BG)
             curses.init_pair(cell_color(i, False), VALUES[i], BG)
-        stdscr.bkgd(' ', curses.color_pair(1))
+        stdscr.bkgd(' ', curses.color_pair(DEFAULT))
 
         # initialization complete
         mainloop(stdscr)
