@@ -63,6 +63,7 @@ Testing environments:
 |                            |          |       |                                                                                                                                          |
 | Konsole (Linux)            | ✅        | ✅     | Does not highlight cell on hover due to an [open bug in KDE](https://bugs.kde.org/show_bug.cgi?id=423333), but you can still click on the cells |
 | Terminator (Linux)         | ✅        | ✅     |                                                                                                                                          |
+| Kitty (Linux)            |  ✅        |   ✅    |                                                                                                                                          |
 |                            |          |       |                                                                                                                                          |
 | cmd.exe (Windows)          | ✅        | ✅     | Except, `cmd.exe` doesn't display Unicode characters so you basically can't play it even under the alternative non-emoji mode.           |
 | powershell.exe (Windows)   | ✅        | ✅     | See note above for `cmd.exe`                                                                                                             |
