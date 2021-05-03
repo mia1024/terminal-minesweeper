@@ -1,9 +1,11 @@
 # Minesweeper, but in terminal
 
-Feeling like playing some minesweeper in terminal, but don't want to stare at the REPL of most of the terminal 
-minesweeper implementations? Here you go, that's what terminal minesweeper is here for. This program is written 
-in Python with curses and no third party library. Compared to other implementations, this program undoubtedly
-look significantly better
+Feeling like playing some minesweeper in terminal, but don't want to type in cell indices for every move like almost all other terminal 
+minesweeper implementations? Well, here you go, that's what terminal minesweeper is here for. This program is written 
+in Python with curses and no third party library (unless you are on windows, which requires the `windows-curses` library). Compared to other implementations, this program undoubtedly
+looks much better, let alone many other improvements. 
+
+It supports mouse movements in [supported terminals](#terminal-compatibilities), including the standarded left/middle/right clicks. Otherwise, you can use your keyboard to navigate the cells. 
 
 ![](screenshots/light_mode.png)
 
@@ -58,16 +60,16 @@ Testing environments:
 
 |                            | Keyboard | Mouse | Note                                                                                                                                     |
 |----------------------------|----------|-------|------------------------------------------------------------------------------------------------------------------------------------------|
-| Terminal (macOS)           | ✅        | ✅     | On trackpad, left click requires double clicking                                                                                         |
-| iTerm2 (macOS)             | ✅        | ✅     | Right click opens up the iTerm menu instead of flagging the cell                                                                         |
+| Terminal (macOS)           | ✅        | ⚠️     | On trackpad, left click requires double clicking                                                                                         |
+| iTerm2 (macOS)             | ✅        | ⚠️     | Right click opens up the iTerm menu instead of flagging the cell                                                                         |
 |                            |          |       |                                                                                                                                          |
-| Konsole (Linux)            | ✅        | ✅     | Does not highlight cell on hover due to an [open bug in KDE](https://bugs.kde.org/show_bug.cgi?id=423333), but you can still click on the cells |
+| Konsole (Linux)            | ✅        | ⚠️     | Does not highlight cell on hover due to an [open bug in KDE](https://bugs.kde.org/show_bug.cgi?id=391967) for many years, but you can still click on the cells |
 | Terminator (Linux)         | ✅        | ✅     |                                                                                                                                          |
 | Kitty (Linux)            |  ✅        |   ✅    |                                                                                                                                          |
 |                            |          |       |                                                                                                                                          |
-| cmd.exe (Windows)          | ✅        | ✅     | Except, `cmd.exe` doesn't display Unicode characters so you basically can't play it even under the alternative non-emoji mode.           |
-| powershell.exe (Windows)   | ✅        | ✅     | See note above for `cmd.exe`                                                                                                             |
-| Windows Terminal (Windows) | ❌        | ✅     |                                                                                                                                          |
+| cmd.exe (Windows)          | ⚠️        | ⚠️     | Except, `cmd.exe` doesn't display Unicode characters so you basically can't play it even under the alternative non-emoji mode.           |
+| powershell.exe (Windows)   | ⚠️        | ⚠️     | See note above for `cmd.exe`                                                                                                             |
+| Windows Terminal (Windows) | ✅        | ❌      |                                                                                                                                          |
 |                            |          |       |                                                                                                                                          |
 | Windows Terminal (WSL 2)   | ✅        | ✅     |                                                                                                                                          |
 ## Usage
