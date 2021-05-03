@@ -59,7 +59,7 @@ Testing environments:
 - Windows: Windows 10 2004, Python 3.8.5
 - WSL: Ubuntu 20.04, Python 3.8.5
 
-|                            | Keyboard | Mouse | Note                                                                                                                                     |
+|                            | Keyboard | Mouse | Notes                                                                                                                                     |
 |----------------------------|----------|-------|------------------------------------------------------------------------------------------------------------------------------------------|
 | Terminal (macOS)           | ✅        | ⚠️     | On trackpad, left click requires double clicking                                                                                         |
 | iTerm2 (macOS)             | ✅        | ⚠️     | Right click opens up the iTerm menu instead of flagging the cell                                                                         |
