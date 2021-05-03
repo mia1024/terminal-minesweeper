@@ -53,10 +53,11 @@ To skip the intro animations, run `minesweeper -q`.
 The following terminals are tested. Untested terminals may or may not work. 
 
 Testing environments: 
-    - macOS: 10.14.6, Python 3.8.0
-    - Linux: Arch Linux 2020.11, Python 3.9.0
-    - Windows: Windows 10 2004, Python 3.8.5
-    - WSL: Ubuntu 20.04, Python 3.8.5
+
+- macOS: 10.14.6, Python 3.8.0
+- Linux: Arch Linux 2020.11, Python 3.9.0
+- Windows: Windows 10 2004, Python 3.8.5
+- WSL: Ubuntu 20.04, Python 3.8.5
 
 |                            | Keyboard | Mouse | Note                                                                                                                                     |
 |----------------------------|----------|-------|------------------------------------------------------------------------------------------------------------------------------------------|
@@ -67,7 +68,7 @@ Testing environments:
 | Terminator (Linux)         | ✅        | ✅     |                                                                                                                                          |
 | Kitty (Linux)            |  ✅        |   ✅    |                                                                                                                                          |
 |                            |          |       |                                                                                                                                          |
-| cmd.exe (Windows)          | ⚠️        | ⚠️     | Except, `cmd.exe` doesn't display Unicode characters so you basically can't play it even under the alternative non-emoji mode.           |
+| cmd.exe (Windows)          | ⚠️        | ⚠️     | Except, `cmd.exe` doesn't display Unicode characters so this game is basically unplayable even under the alternative non-emoji mode.           |
 | powershell.exe (Windows)   | ⚠️        | ⚠️     | See note above for `cmd.exe`                                                                                                             |
 | Windows Terminal (Windows) | ✅        | ❌      |                                                                                                                                          |
 |                            |          |       |                                                                                                                                          |
