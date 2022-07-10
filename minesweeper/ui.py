@@ -544,91 +544,94 @@ class RootWidget(Widget):
         it is responsible for processing and dispatching keyboard
         events and scheduling each widget to render
         """
-        ch = self.window.getch()
+        all_events_processed = False
+        while not all_events_processed:
+            ch = self.window.getch()
 
-        # handles mouse input
-        if ch == curses.KEY_MOUSE:
-            try:
-                _, mouse_x, mouse_y, z, mouse_button = curses.getmouse()
-                mouse = MouseEvent(mouse_button)
+            # handles mouse input
+            if ch == curses.KEY_MOUSE:
+                try:
+                    _, mouse_x, mouse_y, z, mouse_button = curses.getmouse()
+                    mouse = MouseEvent(mouse_button)
 
-                # curses can't recognized any tracking (1003) mode, so it
-                # just spams the previous events (button x released) when
-                # it's just hover, so a lock for each button is necessary
+                    # curses can't recognized any tracking (1003) mode, so it
+                    # just spams the previous events (button x released) when
+                    # it's just hover, so a lock for each button is necessary
 
-                # additionally, it might be the case that the user presses
-                # a button and then hover outside of the screen, which
-                # can results in some strange mouse events unless a lock
-                # is in place
+                    # additionally, it might be the case that the user presses
+                    # a button and then hover outside of the screen, which
+                    # can results in some strange mouse events unless a lock
+                    # is in place
 
-                if MouseEvent.BUTTON1_PRESSED in mouse:
-                    if self.button1_pressed:
-                        mouse &= ~MouseEvent.BUTTON1_PRESSED
-                    else:
-                        self.button1_pressed = True
-                if MouseEvent.BUTTON2_PRESSED in mouse:
-                    if self.button2_pressed:
-                        mouse &= ~MouseEvent.BUTTON2_PRESSED
-                    else:
-                        self.button2_pressed = True
-                if MouseEvent.BUTTON3_PRESSED in mouse:
-                    if self.button3_pressed:
-                        mouse &= ~MouseEvent.BUTTON3_PRESSED
-                    else:
-                        self.button3_pressed = True
+                    if MouseEvent.BUTTON1_PRESSED in mouse:
+                        if self.button1_pressed:
+                            mouse &= ~MouseEvent.BUTTON1_PRESSED
+                        else:
+                            self.button1_pressed = True
+                    if MouseEvent.BUTTON2_PRESSED in mouse:
+                        if self.button2_pressed:
+                            mouse &= ~MouseEvent.BUTTON2_PRESSED
+                        else:
+                            self.button2_pressed = True
+                    if MouseEvent.BUTTON3_PRESSED in mouse:
+                        if self.button3_pressed:
+                            mouse &= ~MouseEvent.BUTTON3_PRESSED
+                        else:
+                            self.button3_pressed = True
 
-                if MouseEvent.BUTTON1_RELEASED in mouse:
-                    if not self.button1_pressed:
-                        mouse &= ~MouseEvent.BUTTON1_RELEASED
-                    else:
-                        self.button1_pressed = False
+                    if MouseEvent.BUTTON1_RELEASED in mouse:
+                        if not self.button1_pressed:
+                            mouse &= ~MouseEvent.BUTTON1_RELEASED
+                        else:
+                            self.button1_pressed = False
 
-                if MouseEvent.BUTTON2_RELEASED in mouse:
-                    if not self.button2_pressed:
-                        mouse &= ~MouseEvent.BUTTON2_RELEASED
-                    else:
-                        self.button2_pressed = False
+                    if MouseEvent.BUTTON2_RELEASED in mouse:
+                        if not self.button2_pressed:
+                            mouse &= ~MouseEvent.BUTTON2_RELEASED
+                        else:
+                            self.button2_pressed = False
 
-                if MouseEvent.BUTTON3_RELEASED in mouse:
-                    if not self.button3_pressed:
-                        mouse &= ~MouseEvent.BUTTON3_RELEASED
-                    else:
-                        self.button3_pressed = False
+                    if MouseEvent.BUTTON3_RELEASED in mouse:
+                        if not self.button3_pressed:
+                            mouse &= ~MouseEvent.BUTTON3_RELEASED
+                        else:
+                            self.button3_pressed = False
 
-                if mouse_x != self.mouse_x or mouse_y != self.mouse_y or mouse:
-                    self.keyboard_mode = False
-                self.mouse_y, self.mouse_x = mouse_y, mouse_x
-            except curses.error:
-                mouse = MouseEvent(0)
-            etype = 'mouse'
-            args = (self.mouse_y, self.mouse_x, mouse)
-        else:
-            # keyboard input
-            if ch == -1 or self.button2_pressed:
-                # block middle button paste on linux
-                char = '\0'
+                    if mouse_x != self.mouse_x or mouse_y != self.mouse_y or mouse:
+                        self.keyboard_mode = False
+                    self.mouse_y, self.mouse_x = mouse_y, mouse_x
+                except curses.error:
+                    mouse = MouseEvent(0)
+                etype = 'mouse'
+                args = (self.mouse_y, self.mouse_x, mouse)
             else:
-                char = {curses.KEY_UP   : 'up',
-                        curses.KEY_DOWN : 'down',
-                        curses.KEY_LEFT : 'left',
-                        curses.KEY_RIGHT: 'right', }.get(ch, chr(ch).lower())
-            etype = 'keyboard'
-            args = (char,)
+                # keyboard input
+                if ch == -1 or self.button2_pressed:
+                    # block middle button paste on linux
+                    char = '\0'
+                    all_events_processed = True
+                else:
+                    char = {curses.KEY_UP   : 'up',
+                            curses.KEY_DOWN : 'down',
+                            curses.KEY_LEFT : 'left',
+                            curses.KEY_RIGHT: 'right', }.get(ch, chr(ch).lower())
+                etype = 'keyboard'
+                args = (char,)
 
-        try:
-            if etype == 'keyboard' and char != '\0':
-                self.dispatch_event('keyboard', *args)
-            elif etype == 'mouse':
-                self.dispatch_event('mouse', *args)
-            elif not self.keyboard_mode:
-                # hover
-                self.dispatch_event('mouse', self.mouse_y, self.mouse_x, MouseEvent(0))
+            try:
+                if etype == 'keyboard' and char != '\0':
+                    self.dispatch_event('keyboard', *args)
+                elif etype == 'mouse':
+                    self.dispatch_event('mouse', *args)
+                elif not self.keyboard_mode:
+                    # hover
+                    self.dispatch_event('mouse', self.mouse_y, self.mouse_x, MouseEvent(0))
 
-        except GameOver as exc:
-            self.game_over = True
-            self.status.status = '😵'
-            exc.args[0].explode()
-            self.board.reveal_all()
+            except GameOver as exc:
+                self.game_over = True
+                self.status.status = '😵'
+                exc.args[0].explode()
+                self.board.reveal_all()
 
         # caps the framerate by postponing rendering
         # while still processing events as fast as possible
