@@ -13,8 +13,8 @@ from .box import Box
 
 # ANSI color code for each color
 if config.dark_mode:
-    FG = 255
-    BG = 237
+    FG = 15
+    BG = 234
     UI_HIGHLIGHT_FG = FG
     UI_HIGHLIGHT_BG = 242
 else:
@@ -23,9 +23,11 @@ else:
     UI_HIGHLIGHT_FG = FG
     UI_HIGHLIGHT_BG = 250
 
-VALUES = [
-    FG, 12, 2, 9, 4, 1, 6, 0, 8
-]
+# ANSI color code for each mine value
+if config.dark_mode:
+    VALUES= [238, 21, 46, 196, 12, 201, 14, 11, 253]
+else:
+    VALUES=[253, 12, 2, 9, 4, 1, 6, 5, 8]
 
 DEFAULT = 1
 UI_HIGHLIGHT = 2
@@ -40,7 +42,7 @@ MouseEvent = IntFlag('MouseEvent',
 
 def cell_color(value, highlight):
     """Calculates the color index of the given cell value and highlight state"""
-    return (value << 3) + (highlight << 2) + 0b11 
+    return (value << 3) + (highlight << 2) + 0b11
     # at value = 0, highlight = 0 this will start from 3
 
 
@@ -408,10 +410,11 @@ class GridWidget(Widget):
         # clears highlight every 50ms in case the cursor leaves the screen
         if not self.root.button2_pressed and self.root.frame_count > CellWidget.last_clear + self.root.monitor.fps / 20:
             CellWidget.clear_highlight()
-            if not self.root.game_over:
-                # restore the face because we don't know
-                # if it was triggered by keyboard
-                self.root.status.status = '🙂'
+
+        if not (self.root.button2_pressed or self.root.button1_pressed or self.root.game_over):
+            # restore the face because we don't know
+            # if it was triggered by keyboard
+            self.root.status.status = '🙂'
 
     def keyboard_event(self, key):
         """
@@ -722,12 +725,12 @@ class RootWidget(Widget):
 
         # handling close button
         if y == 1 and 2 <= x <= 5:
-            if MouseEvent.BUTTON1_PRESSED in mouse:
+            if self.button1_pressed:
                 self.exit()
 
         # do the surprised face
         if not self.game_over:
-            if MouseEvent.BUTTON2_PRESSED in mouse:
+            if self.button1_pressed or self.button2_pressed:
                 self.status.status = '😲'
 
     def keyboard_event(self, key):
@@ -831,7 +834,7 @@ def main():
         curses.init_pair(DEFAULT, FG, BG)
         curses.init_pair(UI_HIGHLIGHT, UI_HIGHLIGHT_FG, UI_HIGHLIGHT_BG)
         curses.init_pair(SYSTEM_DEFAULT, -1, -1)
-        for i in range(8):
+        for i in range(9):
             curses.init_pair(cell_color(i, True), VALUES[i], UI_HIGHLIGHT_BG)
             curses.init_pair(cell_color(i, False), VALUES[i], BG)
         stdscr.bkgd(' ', curses.color_pair(DEFAULT))

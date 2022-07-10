@@ -157,8 +157,8 @@ class Cell(metaclass = CellMeta):
         if FLAGGED in self.state:
             return '🚩' if emo else 'Ｆ'
         if REVEALED in self.state:
-            if self.value == 0:
-                return '　'
+            # if self.value == 0:
+            #     return '　'
             return chr(0xff10 + self.value)
         return '　'
 
