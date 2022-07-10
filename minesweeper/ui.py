@@ -13,7 +13,7 @@ from .box import Box
 
 # ANSI color code for each color
 if config.dark_mode:
-    FG = 15
+    FG = 231
     BG = 234
     UI_HIGHLIGHT_FG = FG
     UI_HIGHLIGHT_BG = 242
@@ -25,9 +25,9 @@ else:
 
 # ANSI color code for each mine value
 if config.dark_mode:
-    VALUES= [238, 21, 46, 196, 12, 201, 14, 11, 253]
+    VALUES= [238, 33, 46, 196, 213, 228, 195, 165, 253]
 else:
-    VALUES=[253, 12, 2, 9, 4, 1, 6, 5, 8]
+    VALUES=[253, 21, 41, 160, 165, 208, 69, 92, 239]
 
 DEFAULT = 1
 UI_HIGHLIGHT = 2
