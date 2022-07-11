@@ -278,7 +278,7 @@ class CellWidget(Widget):
         handles various mouse events
         """
 
-        if (y != 0 or x > 4) or (Widget.root.game_over and not Widget.root.game_start):
+        if (y != 0 or x > 4) or (Widget.root.game_over and not Widget.root.game_start) or Widget.root.help.is_active:
             # ignores the event as it is not relevant
             return
 
@@ -854,13 +854,15 @@ class RootWidget(Widget):
         """renders the entire window{"""
 
         self.frame_count += 1
-        self.monitor.tick()
-        # so that fps will also count the rendering time
+        if not self.help.is_active:
+            # fps also counts rendering time
+            # pause fps while help is active
+            self.monitor.tick()
 
         # populate widgets
         self.fps.set_fps(self.monitor.fps)
         self.flags.set_flag_counts(config.mine_count - self.board.flag_count())
-        if not self.game_over:
+        if not self.game_over and not self.help.is_active:
             time_taken = datetime.datetime.now() - self.time_started
             minute, second = divmod(time_taken.seconds, 60)
             msec = str(time_taken.microseconds).zfill(2)[:2]
@@ -881,7 +883,7 @@ class RootWidget(Widget):
             self.board.reveal_all()
 
         for w in self.subwidgets:
-            if self.help.is_active and isinstance(w,GridWidget):
+            if self.help.is_active and isinstance(w, GridWidget):
                 # Hide the grid while help is active
                 continue
             w.render()
