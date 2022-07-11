@@ -154,11 +154,9 @@ def run():
 
     if exit_message:
         if config.show_animation:
-            print('\033[0;0H', end = '', flush = True)
-            print(((width - 1) * ' ' + '\n') * height, end = '')
             # clear the screen but with fast printing since the
             # program crashed.
-            print('\033[0;0H', end = '', flush = True)
+            print('\033[0;2J\033[0;0H', end = '', flush = True)
         print('\033[91m' + exit_message + '\033[0m', flush = True)
     elif exit_status == 0 and config.show_animation:
 
@@ -166,7 +164,7 @@ def run():
             """
             sigint handler for impatient people. Skip the final animation.
             """
-            print('\033[0;0H\033[0;2J', end = '', flush = True)
+            print('\033[0;2J\033[0;0H', end = '', flush = True)
             sys.exit(exit_status)
 
         signal.signal(signal.SIGINT, sigint_handler)
@@ -183,6 +181,6 @@ def run():
                 time.sleep(max(0.01 / (height - y), 0.0005))
             print('\033[F', end = '', flush = True)
         # erase screen and move cursor to top left corner
-        print('\033[0;0H', end = '', flush = True)
+        print('\033[0;2J\033[0;0H', end = '', flush = True)
         print_slow('Thanks, Python magic. I knew you wouldn\'t fail me ⊂(´・ω・｀⊂)')
     sys.exit(exit_status)

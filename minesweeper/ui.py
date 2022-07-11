@@ -974,6 +974,7 @@ def calc_first_frame(height, width):
 
 def main():
     try:
+        print('\033[0;2J\033[0;0H', end = '', flush = True)
         stdscr = curses.initscr()
         curses.flushinp()
     except curses.error:
