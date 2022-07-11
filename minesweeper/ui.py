@@ -497,13 +497,14 @@ class FlagWidget(Widget):
         else:
             self.addstr(0, 0, f'Ｆ × {self.flags}')
 
+
 # class HelpWidget(Widget):
 #     def __init__(self, parent: Widget, y: int, x: int):
 #         super().__init__(parent,y,x)
 #
 #
 
-class StatusWidget(Widget):
+class SmileyWidget(Widget):
     """
     This widget is the smiley face to the right
     of the window. Will display a dead face on
@@ -567,7 +568,7 @@ class RootWidget(Widget):
         self.grid = GridWidget(self, 0, 0, self.board)
         self.subwidgets.append(self.grid)
 
-        self.status = StatusWidget(self, 0, 0)
+        self.status = SmileyWidget(self, 0, 0)
         self.subwidgets.append(self.status)
 
         self.fps = FPSWidget(self, 0, 0)
@@ -696,8 +697,14 @@ class RootWidget(Widget):
                 etype = 'mouse'
                 args = (self.mouse_y, self.mouse_x, mouse)
             else:
+                # check resize
+                if ch == curses.KEY_RESIZE:
+                    winh, winw = self.window.getmaxyx()
+                    if not config.ignore_failures and (winh < config.min_height or winw < config.min_width):
+                        raise InsufficientScreenSpace
+                    char = '\0'
                 # keyboard input
-                if ch == -1 or self.button2_pressed:
+                elif ch == -1 or self.button2_pressed:
                     # block middle button paste on linux
                     char = '\0'
                     all_events_processed = True

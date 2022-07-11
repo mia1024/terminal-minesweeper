@@ -100,16 +100,13 @@ def run():
     width, height = os.get_terminal_size()
 
     # check the window size to meet the minimum size requirement
-    min_width = config.board_width * 5 + 1
-    min_height = config.board_height * 2 + 1 + 3 + 3
-    # board + face + flag/time + fps/help + title
     check(
-        width >= min_width and height >= min_height,
+        width >= config.min_width and height >= config.min_height,
         'window size',
         f'Please make sure your terminal window has at least '
-        f'{f"{min_width} ({min_width - width} more) columns" if width < min_width else ""}'
-        f'{" and " if width < min_width and height < min_height else ""}'
-        f'{f"{min_height} ({min_height - height} more) rows" if height < min_height else ""}.'
+        f'{f"{config.min_width} ({config.min_width - width} more) columns" if width < config.min_width else ""}'
+        f'{" and " if width < config.min_width and height < config.min_height else ""}'
+        f'{f"{config.min_height} ({config.min_height - height} more) rows" if height < config.min_height else ""}.'
     )
 
     if config.show_animation:

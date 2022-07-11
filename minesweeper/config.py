@@ -49,6 +49,17 @@ class Config(metaclass = SingletonMeta):
         self.debug = False
         self.dark_mode = False
 
+    @property
+    def min_width(self):
+        # board width + 2 for each side
+        return self.board_width * 5 + 1 + 4
+
+    @property
+    def min_height(self):
+        # board height + 3 top for window + 1 bottom for window
+        # + 1 status row + 1 fps row + 1 smiley face
+        return self.board_height * 2 + 1 + 3 + 4
+
 
 config = Config()
 parser = argparse.ArgumentParser(prog = 'minesweeper', add_help = False)
