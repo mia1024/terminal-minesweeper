@@ -115,7 +115,7 @@ def run():
         print_slow("Testing terminal color support...",trailing_newline = False)
         for c in UI_COLORS_USED:
             if c!=BG:
-                print_slow(f"{c}",prefix = f"\033[38:5:{c}m\033[48:5:{BG}m",suffix = "\033[0m ",trailing_newline = False)
+                print_slow(f"{c}",prefix = f"\033[38;5;{c}m\033[48;5;{BG}m",suffix = "\033[0m ",trailing_newline = False)
         print("\n")
         print_slow('All system checks completed, ready to sweep some mines（＾ω＾）')
         print_slow('You have selected {} difficulty, which has a {}x{} grid with {} mines.\n'.format(
