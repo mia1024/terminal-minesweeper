@@ -572,7 +572,7 @@ class HelpWidget(Widget):
                 self.addstr(i, 0, row)
 
             if mouse_y < self.h and mouse_x < self.w:
-                if self.HELP_WINDOW[mouse_y * (self.w+1) + mouse_x] == ' ':
+                if self.HELP_WINDOW[mouse_y * (self.w + 1) + mouse_x] == ' ':
                     Widget.root.window.addch(Widget.root.mouse_y, Widget.root.mouse_x, curses.ACS_DIAMOND)
 
             if mouse_y == 1 and 1 <= mouse_x <= 4:
@@ -590,15 +590,18 @@ class HelpWidget(Widget):
     def keyboard_event(self, key):
         if key == "i":
             self.is_active = not self.is_active
+            self.parent.force_rerender = True
 
     def mouse_event(self, y, x, mouse):
         if MouseEvent.BUTTON1_RELEASED in mouse:
             if not self.is_active:
                 if y == 0 and x == 0:
                     self.is_active = True
+                    self.parent.force_rerender = True
             else:
                 if y == 1 and 1 <= x <= 4:
                     self.is_active = False
+                    self.parent.force_rerender = True
 
 
 class SmileyWidget(Widget):
@@ -646,12 +649,14 @@ class RootWidget(Widget):
 
         # some useful variables
         self.should_exit = False
+        self.force_rerender = False
         self.game_start = True
         self.game_over = True
         self.time_taken = '00:00.00'
         self.time_started = datetime.datetime.now()
 
         self.frame_count = 0
+        self.last_rerender = 0
 
         self.button1_pressed = False
         self.button2_pressed = False
@@ -807,6 +812,7 @@ class RootWidget(Widget):
                     if not config.ignore_failures and (winh < config.min_height or winw < config.min_width):
                         raise InsufficientScreenSpace
                     char = '\0'
+                    self.force_rerender = True
                 # keyboard input
                 elif ch == -1 or self.button2_pressed:
                     # block middle button paste on linux
@@ -875,6 +881,9 @@ class RootWidget(Widget):
             self.board.reveal_all()
 
         for w in self.subwidgets:
+            if self.help.is_active and isinstance(w,GridWidget):
+                # Hide the grid while help is active
+                continue
             w.render()
 
         # overwrite all other widgets
@@ -890,6 +899,9 @@ class RootWidget(Widget):
             self.addstr(1, 3, 'Ｘ')
 
         # debug_print('Window render')
+        if self.force_rerender:
+            self.force_rerender = False
+            self.window.clear()
         self.window.refresh()
 
     def mouse_event(self, y, x, mouse):
@@ -942,7 +954,7 @@ def mainloop(win: curses.window):
         if root.should_exit:
             if config.show_animation:
                 # wait until animation ends
-                signal.signal(signal.SIGINT,signal.SIG_IGN)
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
                 while root.animation_frame > 0:
                     # manager.animation_direction='reversed'
                     root.animation_frame -= 1
@@ -974,7 +986,6 @@ def calc_first_frame(height, width):
 
 def main():
     try:
-        print('\033[0;2J\033[0;0H', end = '', flush = True)
         stdscr = curses.initscr()
         curses.flushinp()
     except curses.error:

@@ -95,7 +95,7 @@ g.add_argument('--ignore-failures', action = 'store_true',
                       ' Not recommended.')
 g.add_argument('--no-emoji', action = 'store_true',
                help = 'Use unicode characters to replace all the emojis. '
-                      'Note that all emojis used by this program are from'
+                      'Note that all emojis used by this program are from '
                       'Emoji v1.0 released in 2015.')
 g.add_argument('--debug', help = 'Enable debug mode.', action = 'store_true')
 
