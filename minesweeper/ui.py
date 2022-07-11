@@ -4,7 +4,7 @@ import signal
 import time
 import traceback
 import sys
-from math import ceil, floor
+from math import ceil, floor, log10
 from .board import Board, Cell, GameOver
 from .config import config
 from .debug import debug_print as _debug_print
@@ -25,9 +25,9 @@ else:
 
 # ANSI color code for each mine value
 if config.dark_mode:
-    VALUES= [238, 33, 46, 196, 213, 228, 195, 165, 253]
+    VALUES = [238, 33, 46, 196, 213, 228, 195, 165, 253]
 else:
-    VALUES=[253, 21, 41, 160, 165, 208, 69, 92, 239]
+    VALUES = [253, 21, 41, 160, 165, 208, 69, 92, 239]
 
 DEFAULT = 1
 UI_HIGHLIGHT = 2
@@ -70,7 +70,7 @@ class FPSMonitor:
         lease 100 frames are rendered
         """
         cur_time = time.time()
-        self.data = [cur_time + i / (config.framerate or 100) / 100 for i in range(100)]
+        self.data = [cur_time - (100 - i) / (config.framerate or 60) for i in range(100)]
 
     def tick(self):
         """rotates the saves frame rendering time"""
@@ -106,6 +106,11 @@ class Widget:
         self.y = y
         self.subwidgets = []
         self._animation_frame = 0
+
+    def anchor(self, y: int, x: int):
+        """Set the x and y of the widget"""
+        self.y = y
+        self.x = x
 
     def addstr(self, y: int, x: int, text, *args, **kwargs):
         """
@@ -191,6 +196,8 @@ class CellWidget(Widget):
         """initializes the cell"""
         super().__init__(parent, y, x)
         self.cell = cell
+        self.h = 1
+        self.w = 4
 
     @classmethod
     def clear_highlight(cls):
@@ -286,9 +293,9 @@ class CellWidget(Widget):
         if key == ' ':
             self.area_reveal()
             self.area_highlight()
-        elif key == 'q':
+        elif key == 'r':
             self.reveal()
-        elif key == 'e':
+        elif key == 'f':
             self.flag()
 
     def render(self):
@@ -332,6 +339,8 @@ class GridWidget(Widget):
         for cell in board.cells:
             self.subwidgets.append(CellWidget(self, cell.y * 2 + 1, cell.x * 5 + 1, cell))
         self.selected_cell = 0
+        self.h = self.board.height * 2 + 1
+        self.w = self.board.width * 5 + 1
 
     def render(self):
         """
@@ -422,13 +431,13 @@ class GridWidget(Widget):
         whether the program is in keyboard-only mode
         """
         cell_count = len(self.subwidgets)
-        if key in ('up', 'w'):
+        if key in ('up', 'w', 'j'):
             self.selected_cell -= self.board.width
-        elif key in ('down', 's'):
+        elif key in ('down', 's', 'k'):
             self.selected_cell += self.board.width
-        elif key in ('left', 'a'):
+        elif key in ('left', 'a', 'h'):
             self.selected_cell -= 1
-        elif key in ('right', 'd'):
+        elif key in ('right', 'd', 'l'):
             self.selected_cell += 1
         else:
             self.subwidgets[self.selected_cell].keyboard_event(key)
@@ -437,6 +446,62 @@ class GridWidget(Widget):
         self.root.keyboard_mode = True
         self.selected_cell %= cell_count  # prevent index error
 
+
+class FPSWidget(Widget):
+    def __init__(self, parent: Widget, y: int, x: int):
+        super().__init__(parent, y, x)
+        self.h = 1
+        self.set_fps(1)  # we don't want to take log10 of 0
+
+    def set_fps(self, fps: int):
+        self.fps = fps
+        self.str = f'FPS: {round(self.fps, 3 - floor(log10(self.fps))):0<5}'
+
+    def render(self):
+        self.addstr(0, 0, self.str)
+
+    @property
+    def w(self):
+        return len(self.str)
+
+
+class TextboxWidget(Widget):
+    def __init__(self, parent: Widget, y: int, x: int):
+        super().__init__(parent, y, x)
+        self.h = 1
+        self.set_text("")
+
+    def set_text(self, text: str):
+        self.text = text
+
+    def render(self):
+        self.addstr(0, 0, self.text)
+
+    @property
+    def w(self):
+        return len(self.text)
+
+
+class FlagWidget(Widget):
+    def __init__(self, parent: Widget, y: int, x: int):
+        super().__init__(parent, y, x)
+        self.h = 1
+        self.flags = config.mine_count
+
+    def set_flag_counts(self, n: int):
+        self.flags = n
+
+    def render(self):
+        if config.use_emojis:
+            self.addstr(0, 0, f'🚩 × {self.flags}')
+        else:
+            self.addstr(0, 0, f'Ｆ × {self.flags}')
+
+# class HelpWidget(Widget):
+#     def __init__(self, parent: Widget, y: int, x: int):
+#         super().__init__(parent,y,x)
+#
+#
 
 class StatusWidget(Widget):
     """
@@ -451,6 +516,8 @@ class StatusWidget(Widget):
         """initializes the status"""
         super().__init__(parent, y, x)
         self.status = '🙂'
+        self.w = 2
+        self.h = 1
 
     def mouse_event(self, y, x, mouse):
         """handles left click on the face (restart)"""
@@ -479,16 +546,6 @@ class RootWidget(Widget):
         self.mouse_x = 0
         self.monitor = FPSMonitor()
 
-        # initializes the grid (where all the mines are)
-        self.grid = GridWidget(self, 6, 5, self.board)
-        self.subwidgets.append(self.grid)
-
-        # initializes the status widget (the right sidebar)
-        self.status_x_offset = 5 + self.board.width * 5 + 4
-        self.status_y_offset = 4
-        self.status = StatusWidget(self, self.status_y_offset + 1, self.status_x_offset + 14)
-        self.subwidgets.append(self.status)
-
         # some useful variables
         self.should_exit = False
         self.game_start = True
@@ -505,6 +562,40 @@ class RootWidget(Widget):
         self.keyboard_mode = True
 
         Widget.root = self
+
+        # initialize widgets
+        self.grid = GridWidget(self, 0, 0, self.board)
+        self.subwidgets.append(self.grid)
+
+        self.status = StatusWidget(self, 0, 0)
+        self.subwidgets.append(self.status)
+
+        self.fps = FPSWidget(self, 0, 0)
+        self.subwidgets.append(self.fps)
+
+        self.timer = TextboxWidget(self, 0, 0)
+        self.timer.set_text(self.time_taken)
+        self.subwidgets.append(self.timer)
+
+        self.flags = FlagWidget(self, 0, 0)
+        self.subwidgets.append(self.flags)
+
+        self.calc_widget_locations()
+
+    def calc_widget_locations(self):
+        """Reanchor all sub widgets"""
+        winh, winw = self.window.getmaxyx()
+        grid_top = floor((winh - self.grid.h) / 2) + 2
+        grid_bottom = grid_top + self.grid.h
+
+        grid_left = (winw - self.grid.w) // 2
+        grid_right = grid_left + self.grid.w
+
+        self.grid.anchor(grid_top, grid_left)
+        self.status.anchor(grid_top - 2, (winw - self.status.w) // 2)
+        self.fps.anchor(grid_bottom, grid_right - self.fps.w)
+        self.timer.anchor(grid_top - 1, grid_right - self.timer.w)
+        self.flags.anchor(grid_top - 1, grid_left)
 
     def exit(self):
         """
@@ -649,55 +740,42 @@ class RootWidget(Widget):
         self.monitor.tick()
         # so that fps will also count the rendering time
 
-        self.window.erase()
-        try:
-            self.window.addch(self.mouse_y, self.mouse_x, curses.ACS_DIAMOND)
-        except curses.error:
-            pass  # sometimes mouse fly around and that's ok
-        self.addstr(4, 5, f'FPS: {round(self.monitor.fps, 2):0<5}')
-
-        # adding legends
+        # populate widgets
+        self.fps.set_fps(self.monitor.fps)
+        self.flags.set_flag_counts(config.mine_count - self.board.flag_count())
         if not self.game_over:
             time_taken = datetime.datetime.now() - self.time_started
             minute, second = divmod(time_taken.seconds, 60)
             msec = str(time_taken.microseconds).zfill(2)[:2]
             self.time_taken = f'{minute:0>2}:{second:0>2}.{msec}'
+            self.timer.set_text(self.time_taken)
 
-        self.addstr(self.status_y_offset, self.status_x_offset + 11, self.time_taken)
+        self.window.erase()
+        self.calc_widget_locations()
+        try:
+            self.window.addch(self.mouse_y, self.mouse_x, curses.ACS_DIAMOND)
+        except curses.error:
+            pass  # sometimes mouse fly around and that's ok
 
-        self.addstr(self.status_y_offset + 3, self.status_x_offset, '          Navigation')
-        self.addstr(self.status_y_offset + 4, self.status_x_offset, '   [W]        [↑]      Move ')
-        self.addstr(self.status_y_offset + 5, self.status_x_offset, '[A][S][D]  [←][↓][→]  cursor')
-
-        self.addstr(self.status_y_offset + 7, self.status_x_offset, '          Operation')
-        self.addstr(self.status_y_offset + 8, self.status_x_offset, 'Reveal cell       [LMB]/[Q] ')
-        self.addstr(self.status_y_offset + 9, self.status_x_offset, 'Reveal area       [MMB]/[Space]')
-        self.addstr(self.status_y_offset + 10, self.status_x_offset, 'Flag cell         [RMB]/[E] ')
-        self.addstr(self.status_y_offset + 11, self.status_x_offset, 'Restart           [Enter]')
-        self.addstr(self.status_y_offset + 12, self.status_x_offset, 'Toggle emojis     [T] ')
-
-        emo = config.use_emojis
-        self.addstr(self.status_y_offset + 14, self.status_x_offset + 11, 'Symbols')
-        self.addstr(self.status_y_offset + 15, self.status_x_offset + 6, ('💥' if emo else '＊') + ' Exploded mine')
-        self.addstr(self.status_y_offset + 16, self.status_x_offset + 6, ('🏁' if emo else 'Ｘ') + ' Flagged mine')
-        self.addstr(self.status_y_offset + 17, self.status_x_offset + 6, ('💣' if emo else 'Ｏ') + ' Unflagged mine')
-        self.addstr(self.status_y_offset + 18, self.status_x_offset + 6, ('🚩' if emo else 'Ｆ') + ' Flag')
-
-        # flag counts
-        flags = config.mine_count - self.board.flag_count()
-        if config.use_emojis:
-            if flags <= 10:
-                self.addstr(self.status_y_offset + 20,
-                            self.status_x_offset + 14 - flags,
-                            '🚩' * (config.mine_count - self.board.flag_count()))
-            else:
-                self.addstr(self.status_y_offset + 20,
-                            self.status_x_offset + 10,
-                            f'🚩 × {flags}')
-        else:
-            self.addstr(self.status_y_offset + 20,
-                        self.status_x_offset + 10,
-                        f'Ｆ × {flags}')
+        # self.addstr(self.status_y_offset, self.status_x_offset + 11, self.time_taken)
+        #
+        # self.addstr(self.status_y_offset + 3, self.status_x_offset, '          Navigation')
+        # self.addstr(self.status_y_offset + 4, self.status_x_offset, '   [W]        [↑]      Move ')
+        # self.addstr(self.status_y_offset + 5, self.status_x_offset, '[A][S][D]  [←][↓][→]  cursor')
+        #
+        # self.addstr(self.status_y_offset + 7, self.status_x_offset, '          Operation')
+        # self.addstr(self.status_y_offset + 8, self.status_x_offset, 'Reveal cell       [LMB]/[Q] ')
+        # self.addstr(self.status_y_offset + 9, self.status_x_offset, 'Reveal area       [MMB]/[Space]')
+        # self.addstr(self.status_y_offset + 10, self.status_x_offset, 'Flag cell         [RMB]/[E] ')
+        # self.addstr(self.status_y_offset + 11, self.status_x_offset, 'Restart           [Enter]')
+        # self.addstr(self.status_y_offset + 12, self.status_x_offset, 'Toggle emojis     [T] ')
+        #
+        # emo = config.use_emojis
+        # self.addstr(self.status_y_offset + 14, self.status_x_offset + 11, 'Symbols')
+        # self.addstr(self.status_y_offset + 15, self.status_x_offset + 6, ('💥' if emo else '＊') + ' Exploded mine')
+        # self.addstr(self.status_y_offset + 16, self.status_x_offset + 6, ('🏁' if emo else 'Ｘ') + ' Flagged mine')
+        # self.addstr(self.status_y_offset + 17, self.status_x_offset + 6, ('💣' if emo else 'Ｏ') + ' Unflagged mine')
+        # self.addstr(self.status_y_offset + 18, self.status_x_offset + 6, ('🚩' if emo else 'Ｆ') + ' Flag')
 
         # check winning condition
         if not self.game_over and self.board.check_win():
@@ -705,8 +783,8 @@ class RootWidget(Widget):
             self.game_over = True
             self.board.reveal_all()
 
-        self.grid.render()
-        self.status.render()
+        for w in self.subwidgets:
+            w.render()
 
         # overwrite all other widgets
         self.paint_window()
@@ -758,8 +836,9 @@ def mainloop(win: curses.window):
     win.clear()
     root = RootWidget(win)
 
-    signint_handler = lambda signum, frame: root.exit()
-    signal.signal(signal.SIGINT, signint_handler)
+    signal.signal(signal.SIGINT, lambda signum, frame: root.exit())
+    signal.signal(signal.SIGTERM, lambda signum, frame: root.exit())
+    signal.signal(signal.SIGQUIT, lambda signum, frame: root.exit())
     # so it only shuts down after a full frame is rendered
     while True:
         winh, winw = win.getmaxyx()

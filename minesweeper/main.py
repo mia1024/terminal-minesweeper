@@ -52,6 +52,7 @@ def check(condition: bool, name: str, error_message: str):
             print_slow('FAILURE IGNORED', prefix = '\033[91m', suffix = '\033[0m')
             print()
 
+
 def run():
     """Run the program. Put inside a function so it can be imported"""
 
@@ -99,8 +100,9 @@ def run():
     width, height = os.get_terminal_size()
 
     # check the window size to meet the minimum size requirement
-    min_width = config.board_width * 5 + 1 + 41
-    min_height = max(config.board_height * 2 + 8, 26)
+    min_width = config.board_width * 5 + 1
+    min_height = config.board_height * 2 + 1 + 3 + 3
+    # board + face + flag/time + fps/help + title
     check(
         width >= min_width and height >= min_height,
         'window size',
@@ -165,7 +167,6 @@ def run():
             """
             print('\033[0;0H', end = '', flush = True)
             sys.exit(exit_status)
-
 
         signal.signal(signal.SIGINT, sigint_handler)
 
