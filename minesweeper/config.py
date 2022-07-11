@@ -39,13 +39,13 @@ class Config(metaclass = SingletonMeta):
         "Initialize the object to default values"
         self.use_emojis = True
         self.framerate = 0
-        self.board_width = 16
-        self.board_height = 16
-        self.mine_count = 40
+        self.board_width = 9
+        self.board_height = 9
+        self.mine_count = 10
         self.silent_checks = False
         self.ignore_failures = False
         self.show_animation = True
-        self.difficulty = 'intermediate'
+        self.difficulty = 'easy'
         self.debug = False
         self.dark_mode = False
 
@@ -115,11 +115,11 @@ config.use_emojis = not args.no_emoji
 config.framerate = args.framerate
 config.dark_mode = bool(args.dark_mode)
 
-if args.easy:
-    config.board_width = 9
-    config.board_height = 9
-    config.mine_count = 10
-    config.difficulty = 'easy'
+if args.intermediate:
+    config.board_width = 16
+    config.board_height = 16
+    config.mine_count = 40
+    config.difficulty = 'intermediate'
 elif args.hard:
     config.board_width = 30
     config.board_height = 16

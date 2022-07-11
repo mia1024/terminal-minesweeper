@@ -106,7 +106,8 @@ def run():
         f'Please make sure your terminal window has at least '
         f'{f"{config.min_width} ({config.min_width - width} more) columns" if width < config.min_width else ""}'
         f'{" and " if width < config.min_width and height < config.min_height else ""}'
-        f'{f"{config.min_height} ({config.min_height - height} more) rows" if height < config.min_height else ""}.'
+        f'{f"{config.min_height} ({config.min_height - height} more) rows" if height < config.min_height else ""}, '
+        f'or specify a smaller board size.'
     )
 
     from .ui import main, calc_first_frame, FG, BG, UI_COLORS_USED
