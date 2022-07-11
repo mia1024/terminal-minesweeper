@@ -9,6 +9,7 @@ from .board import Board, Cell, GameOver
 from .config import config
 from .debug import debug_print as _debug_print
 from enum import IntFlag
+from textwrap import dedent
 from .box import Box
 
 # ANSI color code for each color
@@ -31,14 +32,13 @@ if config.dark_mode:
 else:
     VALUES = [253, 21, 41, 160, 165, 208, 69, 92, 239]
 
-UI_COLORS_USED=[FG,BG,UI_HIGHLIGHT_FG,UI_HIGHLIGHT_BG,UI_ALT_HIGHLIGHT_BG]
+UI_COLORS_USED = [FG, BG, UI_HIGHLIGHT_FG, UI_HIGHLIGHT_BG, UI_ALT_HIGHLIGHT_BG]
 UI_COLORS_USED.extend(VALUES)
-UI_COLORS_USED=sorted(list(set(UI_COLORS_USED))) # remove duplicate and sort
-
+UI_COLORS_USED = sorted(list(set(UI_COLORS_USED)))  # remove duplicate and sort
 
 DEFAULT = 1
 UI_HIGHLIGHT = 2
-UI_ALT_HIGHLIGHT =3
+UI_ALT_HIGHLIGHT = 3
 SYSTEM_DEFAULT = 127
 
 # a simple wrapper around the mouse events for easier bitmask processing
@@ -46,6 +46,14 @@ MouseEvent = IntFlag('MouseEvent',
                      [(v, getattr(curses, v)) for v in filter(lambda s: s.startswith('BUTTON'), dir(curses))] +
                      [('DRAG', 1 << (27 if sys.platform == 'darwin' else 28))]
                      )  # trials and errors suggest this is the code for drag
+
+
+def pad_window(line, width, center = False):
+    """Pad the side of a window to a width"""
+    if not center:
+        return ' │' + line + ' ' * (width - len(line) - 4) + '│ '
+    return ' │' + ' ' * floor((width - len(line) - 4) / 2) + line + ' ' * ceil(
+        (width - len(line) - 4) / 2) + '│ '
 
 
 def cell_color(value, highlight):
@@ -315,7 +323,8 @@ class CellWidget(Widget):
             v = int(str(self.cell))  # a quick test for non-numbered cell
         except ValueError:  # mine, flag, or blank
             if self.cell.is_highlighted:
-                self.addstr(0, 0, f' {self.cell} ', curses.color_pair(UI_ALT_HIGHLIGHT if self.cell.is_flagged else UI_HIGHLIGHT))
+                self.addstr(0, 0, f' {self.cell} ',
+                            curses.color_pair(UI_ALT_HIGHLIGHT if self.cell.is_flagged else UI_HIGHLIGHT))
             else:
                 self.addstr(0, 1, self.cell)
         else:
@@ -506,11 +515,91 @@ class FlagWidget(Widget):
             self.addstr(0, 0, f'Ｆ × {self.flags}')
 
 
-# class HelpWidget(Widget):
-#     def __init__(self, parent: Widget, y: int, x: int):
-#         super().__init__(parent,y,x)
-#
-#
+class HelpWidget(Widget):
+    HELP_WINDOW = dedent("""\
+        ╭────┬───────────────────────────────────────────────╮
+        │    │                   HELP                        │
+        ├────┴────────────────────┬──────────────────────────┤
+        │         Keyboard        │           Mouse          │
+        ├─────────────────────────┼──────────────────────────┤
+        │     [W]         [↑]     │                          │
+        │  [A][S][D]   [←][↓][→]  │           Move           │
+        │                         │          Cursor          │
+        │      [h][j] [k][l]      │                          │
+        │                         │                          │
+        │  Flag:        [F]       │  Flag:   [Left click]    │
+        │  Reveal:      [R]       │  Reveal: [Right click]   │
+        │  Chord:       [Space]   │  Chord:  [Middle click]  │
+        │  Restart:     [Enter]   │                          │
+        │  Help:        [I]       │                          │
+        │  Exit Game:   [Ctrl-C]  │                          │
+        ╰─────────────────────────┴──────────────────────────╯
+        """)
+
+    def __init__(self, parent: Widget, y: int, x: int):
+        super().__init__(parent, y, x)
+        self.is_active = False
+
+    @property
+    def w(self):
+        if not self.is_active:
+            # +1 for the full width character ⓘ
+            return len("ⓘ press i for help") + 1
+        else:
+            return 54
+
+    @property
+    def h(self):
+        if not self.is_active:
+            return 1
+        else:
+            return 16
+
+    def mouse_x(self):
+        return Widget.root.mouse_x - self.x
+
+    def mouse_y(self):
+        return Widget.root.mouse_y - self.y
+
+    def render(self):
+        if not self.is_active:
+            self.addstr(0, 0, "ⓘ press i for help")
+        else:
+            mouse_y = self.mouse_y()
+            mouse_x = self.mouse_x()
+
+            for i, row in enumerate(self.HELP_WINDOW.splitlines()):
+                self.addstr(i, 0, row)
+
+            if mouse_y < self.h and mouse_x < self.w:
+                if self.HELP_WINDOW[mouse_y * (self.w+1) + mouse_x] == ' ':
+                    Widget.root.window.addch(Widget.root.mouse_y, Widget.root.mouse_x, curses.ACS_DIAMOND)
+
+            if mouse_y == 1 and 1 <= mouse_x <= 4:
+                self.addstr(1, 1, ' Ｘ ', curses.color_pair(UI_HIGHLIGHT))
+            else:
+                self.addstr(1, 2, 'Ｘ')
+
+        # emo = config.use_emojis
+        # self.addstr(self.status_y_offset + 14, self.status_x_offset + 11, 'Symbols')
+        # self.addstr(self.status_y_offset + 15, self.status_x_offset + 6, ('💥' if emo else '＊') + ' Exploded mine')
+        # self.addstr(self.status_y_offset + 16, self.status_x_offset + 6, ('🏁' if emo else 'Ｘ') + ' Flagged mine')
+        # self.addstr(self.status_y_offset + 17, self.status_x_offset + 6, ('💣' if emo else 'Ｏ') + ' Unflagged mine')
+        # self.addstr(self.status_y_offset + 18, self.status_x_offset + 6, ('🚩' if emo else 'Ｆ') + ' Flag')
+
+    def keyboard_event(self, key):
+        if key == "i":
+            self.is_active = not self.is_active
+
+    def mouse_event(self, y, x, mouse):
+        if MouseEvent.BUTTON1_RELEASED in mouse:
+            if not self.is_active:
+                if y == 0 and x == 0:
+                    self.is_active = True
+            else:
+                if y == 1 and 1 <= x <= 4:
+                    self.is_active = False
+
 
 class SmileyWidget(Widget):
     """
@@ -589,6 +678,9 @@ class RootWidget(Widget):
         self.flags = FlagWidget(self, 0, 0)
         self.subwidgets.append(self.flags)
 
+        self.help = HelpWidget(self, 0, 0)
+        self.subwidgets.append(self.help)
+
         self.calc_widget_locations()
 
     def calc_widget_locations(self):
@@ -605,6 +697,10 @@ class RootWidget(Widget):
         self.fps.anchor(grid_bottom, grid_right - self.fps.w)
         self.timer.anchor(grid_top - 1, grid_right - self.timer.w)
         self.flags.anchor(grid_top - 1, grid_left)
+        if self.help.is_active:
+            self.help.anchor((winh - self.help.h) // 2, (winw - self.help.w) // 2)
+        else:
+            self.help.anchor(grid_bottom, grid_left)
 
     def exit(self):
         """
@@ -772,26 +868,6 @@ class RootWidget(Widget):
         except curses.error:
             pass  # sometimes mouse fly around and that's ok
 
-        # self.addstr(self.status_y_offset, self.status_x_offset + 11, self.time_taken)
-        #
-        # self.addstr(self.status_y_offset + 3, self.status_x_offset, '          Navigation')
-        # self.addstr(self.status_y_offset + 4, self.status_x_offset, '   [W]        [↑]      Move ')
-        # self.addstr(self.status_y_offset + 5, self.status_x_offset, '[A][S][D]  [←][↓][→]  cursor')
-        #
-        # self.addstr(self.status_y_offset + 7, self.status_x_offset, '          Operation')
-        # self.addstr(self.status_y_offset + 8, self.status_x_offset, 'Reveal cell       [LMB]/[Q] ')
-        # self.addstr(self.status_y_offset + 9, self.status_x_offset, 'Reveal area       [MMB]/[Space]')
-        # self.addstr(self.status_y_offset + 10, self.status_x_offset, 'Flag cell         [RMB]/[E] ')
-        # self.addstr(self.status_y_offset + 11, self.status_x_offset, 'Restart           [Enter]')
-        # self.addstr(self.status_y_offset + 12, self.status_x_offset, 'Toggle emojis     [T] ')
-        #
-        # emo = config.use_emojis
-        # self.addstr(self.status_y_offset + 14, self.status_x_offset + 11, 'Symbols')
-        # self.addstr(self.status_y_offset + 15, self.status_x_offset + 6, ('💥' if emo else '＊') + ' Exploded mine')
-        # self.addstr(self.status_y_offset + 16, self.status_x_offset + 6, ('🏁' if emo else 'Ｘ') + ' Flagged mine')
-        # self.addstr(self.status_y_offset + 17, self.status_x_offset + 6, ('💣' if emo else 'Ｏ') + ' Unflagged mine')
-        # self.addstr(self.status_y_offset + 18, self.status_x_offset + 6, ('🚩' if emo else 'Ｆ') + ' Flag')
-
         # check winning condition
         if not self.game_over and self.board.check_win():
             self.status.status = '😎'
@@ -881,21 +957,14 @@ def calc_first_frame(height, width):
     :return: a list of strings, each representing a line
     """
 
-    def pad(line, center = False):
-        """a simple """
-        if not center:
-            return ' │' + line + ' ' * (width - len(line) - 4) + '│ '
-        return ' │' + ' ' * floor((width - len(line) - 4) / 2) + line + ' ' * ceil(
-            (width - len(line) - 4) / 2) + '│ '
-
     frame = []
     line = ' ╭' + '─' * (width - 4) + '╮ '
     frame.append(line)
-    frame.append(pad('TERMINAL MINESWEEPER', center = True))
+    frame.append(pad_window('TERMINAL MINESWEEPER', width, center = True))
     line = ' ├' + '─' * (width - 4) + '┤ '
     frame.append(line)
     for y in range(height - 4):
-        frame.append(pad(''))
+        frame.append(pad_window('', width))
     line = ' ╰' + '─' * (width - 4) + '╯ '
     frame.append(line)
     return frame
