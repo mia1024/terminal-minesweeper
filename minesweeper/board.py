@@ -99,6 +99,10 @@ class Cell(metaclass = CellMeta):
         """returns a boolean indicating if the cell has been highlighted"""
         return HIGHLIGHT in self.state
 
+    @property
+    def is_flagged(self):
+        return FLAGGED in self.state
+
     def highlight(self, force = False):
         """
         Toggles the highlghting state of the cell. blocks the highlight if the
@@ -107,7 +111,7 @@ class Cell(metaclass = CellMeta):
         if force:
             debug_print(f'{repr(self)} toggle highlight (force)')
             self.state ^= HIGHLIGHT
-        elif not (REVEALED in self.state or FLAGGED in self.state):
+        elif REVEALED not in self.state:
             debug_print(f'{repr(self)} toggle highlight')
             self.state ^= HIGHLIGHT
         else:

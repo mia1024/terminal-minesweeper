@@ -109,16 +109,20 @@ def run():
         f'{f"{config.min_height} ({config.min_height - height} more) rows" if height < config.min_height else ""}.'
     )
 
+    from .ui import main, calc_first_frame, FG, BG, UI_COLORS_USED
+
     if config.show_animation:
-        print()
+        print_slow("Testing terminal color support...",trailing_newline = False)
+        for c in UI_COLORS_USED:
+            if c!=BG:
+                print_slow(f"{c}",prefix = f"\033[38:5:{c}m\033[48:5:{BG}m",suffix = "\033[0m ",trailing_newline = False)
+        print("\n")
         print_slow('All system checks completed, ready to sweep some mines（＾ω＾）')
         print_slow('You have selected {} difficulty, which has a {}x{} grid with {} mines.\n'.format(
             config.difficulty, config.board_width, config.board_height, config.mine_count
         ))
         print_slow(r'Printing a window in the hope that it will come into life ◦°˚\(*❛ ‿ ❛)/˚°◦')
         print_slow('Please lend me your power, Python magic!\nBalabala pew (∩^o^)⊃━☆゜.*', trailing_newline = False)
-
-    from .ui import main, calc_first_frame, FG, BG
 
     # only import everything after the system checks so we don't get random
     # SyntaxError or NameError for lower python versions

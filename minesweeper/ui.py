@@ -17,11 +17,13 @@ if config.dark_mode:
     BG = 234
     UI_HIGHLIGHT_FG = FG
     UI_HIGHLIGHT_BG = 242
+    UI_ALT_HIGHLIGHT_BG = 203
 else:
     FG = 232
     BG = 231
     UI_HIGHLIGHT_FG = FG
     UI_HIGHLIGHT_BG = 250
+    UI_ALT_HIGHLIGHT_BG = 203
 
 # ANSI color code for each mine value
 if config.dark_mode:
@@ -29,8 +31,14 @@ if config.dark_mode:
 else:
     VALUES = [253, 21, 41, 160, 165, 208, 69, 92, 239]
 
+UI_COLORS_USED=[FG,BG,UI_HIGHLIGHT_FG,UI_HIGHLIGHT_BG,UI_ALT_HIGHLIGHT_BG]
+UI_COLORS_USED.extend(VALUES)
+UI_COLORS_USED=sorted(list(set(UI_COLORS_USED))) # remove duplicate and sort
+
+
 DEFAULT = 1
 UI_HIGHLIGHT = 2
+UI_ALT_HIGHLIGHT =3
 SYSTEM_DEFAULT = 127
 
 # a simple wrapper around the mouse events for easier bitmask processing
@@ -42,8 +50,8 @@ MouseEvent = IntFlag('MouseEvent',
 
 def cell_color(value, highlight):
     """Calculates the color index of the given cell value and highlight state"""
-    return (value << 3) + (highlight << 2) + 0b11
-    # at value = 0, highlight = 0 this will start from 3
+    return (value << 4) | (highlight << 3) | 0b111
+    # at value = 0, highlight = 0 this will start from 7
 
 
 def debug_print(*args, **kwargs):
@@ -307,7 +315,7 @@ class CellWidget(Widget):
             v = int(str(self.cell))  # a quick test for non-numbered cell
         except ValueError:  # mine, flag, or blank
             if self.cell.is_highlighted:
-                self.addstr(0, 0, f' {self.cell} ', curses.color_pair(UI_HIGHLIGHT))
+                self.addstr(0, 0, f' {self.cell} ', curses.color_pair(UI_ALT_HIGHLIGHT if self.cell.is_flagged else UI_HIGHLIGHT))
             else:
                 self.addstr(0, 1, self.cell)
         else:
@@ -922,6 +930,7 @@ def main():
         curses.use_default_colors()
         curses.init_pair(DEFAULT, FG, BG)
         curses.init_pair(UI_HIGHLIGHT, UI_HIGHLIGHT_FG, UI_HIGHLIGHT_BG)
+        curses.init_pair(UI_ALT_HIGHLIGHT, UI_HIGHLIGHT_FG, UI_ALT_HIGHLIGHT_BG)
         curses.init_pair(SYSTEM_DEFAULT, -1, -1)
         for i in range(9):
             curses.init_pair(cell_color(i, True), VALUES[i], UI_HIGHLIGHT_BG)
