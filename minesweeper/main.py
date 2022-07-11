@@ -166,7 +166,7 @@ def run():
             """
             sigint handler for impatient people. Skip the final animation.
             """
-            print('\033[0;0H', end = '', flush = True)
+            print('\033[0;0H\033[0;2J', end = '', flush = True)
             sys.exit(exit_status)
 
         signal.signal(signal.SIGINT, sigint_handler)

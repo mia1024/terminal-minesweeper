@@ -941,6 +941,8 @@ def mainloop(win: curses.window):
             curses.napms(20)
         if root.should_exit:
             if config.show_animation:
+                # wait until animation ends
+                signal.signal(signal.SIGINT,signal.SIG_IGN)
                 while root.animation_frame > 0:
                     # manager.animation_direction='reversed'
                     root.animation_frame -= 1
