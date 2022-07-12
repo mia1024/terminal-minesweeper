@@ -572,8 +572,11 @@ class HelpWidget(Widget):
                 self.addstr(i, 0, row)
 
             if mouse_y < self.h and mouse_x < self.w:
-                if self.HELP_WINDOW[mouse_y * (self.w + 1) + mouse_x] == ' ':
-                    Widget.root.window.addch(Widget.root.mouse_y, Widget.root.mouse_x, curses.ACS_DIAMOND)
+                try:
+                    if self.HELP_WINDOW[mouse_y * (self.w + 1) + mouse_x] == ' ':
+                        Widget.root.window.addch(Widget.root.mouse_y, Widget.root.mouse_x, curses.ACS_DIAMOND)
+                except IndexError:
+                    pass
 
             if mouse_y == 1 and 1 <= mouse_x <= 4:
                 self.addstr(1, 1, ' Ｘ ', curses.color_pair(UI_HIGHLIGHT))
