@@ -845,13 +845,12 @@ class RootWidget(Widget):
                 self.board.reveal_all()
 
         # caps the framerate by postponing rendering
-        # while still processing events as fast as possible
         if config.framerate:
-            elapsed = time.time() - self.monitor.last_frame
-            if elapsed * config.framerate >= 1:
-                self.render()
+            self.render()
+            curses.napms(floor(1/config.framerate*1000-(time.time()-self.monitor.last_frame)))
         else:
             self.render()
+            curses.napms(1) # voluntary context switch
 
     def render(self):
         """renders the entire window{"""
