@@ -77,9 +77,9 @@ def run():
             print_slow('To see a list of possible options, run this program with --help.')
         print_slow('\nCommencing system check.')
 
-    # checking for python3.8 (3.7 doesn't work)
+    # checking for python3.6+
     v = sys.version_info
-    check(v.major == 3 and v.minor >= 8,
+    check(v.major == 3 and v.minor >= 6,
           'Python version',
           'Please use Python3.8 or above.'
           )

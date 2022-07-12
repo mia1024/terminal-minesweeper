@@ -634,7 +634,7 @@ class SmileyWidget(Widget):
 
 
 class RootWidget(Widget):
-    def __init__(self, win: curses.window):
+    def __init__(self, win):
         """
         initializes the root widget
         """
@@ -936,7 +936,7 @@ class RootWidget(Widget):
             w.dispatch_event('keyboard', key)
 
 
-def mainloop(win: curses.window):
+def mainloop(win):
     """the mainloop of the program. blocks until exit"""
     win.clear()
     root = RootWidget(win)

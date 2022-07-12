@@ -9,7 +9,7 @@ setup(
     author = 'Mia Celeste',
     author_email = 'mia@miaceleste.dev',
     url = 'https://github.com/mia1024/terminal-minesweeper',
-    python_requires = '>=3.8',
+    python_requires = '>=3.6',
     packages = ['minesweeper'],
     entry_points = {
         'console_scripts': [
