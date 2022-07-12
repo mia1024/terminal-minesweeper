@@ -287,7 +287,6 @@ class Board:
             cell.is_highlighted = False
             cell.is_exploded = False
             cell.is_mine = False
-            cell.is_mine = False
             cell.value = 0
             cell.surroundings = []
 

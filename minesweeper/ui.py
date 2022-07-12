@@ -10,7 +10,7 @@ from .config import config
 from .debug import debug_print as _debug_print
 from enum import IntFlag
 from textwrap import dedent
-from .box import Box
+from .box import box
 
 # ANSI color code for each color
 if config.dark_mode:
@@ -383,38 +383,38 @@ class GridWidget(Widget):
 
                 # special case for first column
                 if not x:
-                    self.addstr(y * 2 + 1, 0, Box.up(tl).down(tl))
-                    self.addstr(y * 2 + 3, 0, Box.up(bl).down(bl))
-                    self.addstr(y * 2 + 2, 0, Box.up(tl).down(bl).right(tl or bl))
+                    self.addstr(y * 2 + 1, 0, box(up=tl,down=tl))
+                    self.addstr(y * 2 + 3, 0, box(up=bl,down=bl))
+                    self.addstr(y * 2 + 2, 0, box(up=tl,down=bl,right=tl or bl))
 
                 # special case for last column
                 if x == self.board.width - 2:
-                    self.addstr(y * 2 + 1, x * 5 + 10, Box.up(tr).down(tr))
-                    self.addstr(y * 2 + 3, x * 5 + 10, Box.up(br).down(br))
-                    self.addstr(y * 2 + 2, x * 5 + 10, Box.up(tr).down(br).left(tr or br))
+                    self.addstr(y * 2 + 1, x * 5 + 10, box(up=tr,down=tr))
+                    self.addstr(y * 2 + 3, x * 5 + 10, box(up=br,down=br))
+                    self.addstr(y * 2 + 2, x * 5 + 10, box(up=tr,down=br,left=tr or br))
 
                 # special case for first row
                 if not y:
-                    self.addstr(y * 2, x * 5 + 1, Box.left(tl).right(tl) * 4)
-                    self.addstr(y * 2, x * 5 + 6, Box.left(tr).right(tr) * 4)
-                    self.addstr(y * 2, x * 5 + 5, Box.left(tl).right(tr).down(tl or tr))
+                    self.addstr(y * 2, x * 5 + 1, box(left=tl,right=tl) * 4)
+                    self.addstr(y * 2, x * 5 + 6, box(left=tr,right=tr) * 4)
+                    self.addstr(y * 2, x * 5 + 5, box(left=tl,right=tr,down=tl or tr))
 
                 # special case for last row
                 if y == self.board.height - 2:
-                    self.addstr(y * 2 + 4, x * 5 + 1, Box.left(bl).right(bl) * 4)
-                    self.addstr(y * 2 + 4, x * 5 + 6, Box.left(br).right(br) * 4)
-                    self.addstr(y * 2 + 4, x * 5 + 5, Box.left(bl).right(br).up(bl or br))
+                    self.addstr(y * 2 + 4, x * 5 + 1, box(left=bl,right=bl) * 4)
+                    self.addstr(y * 2 + 4, x * 5 + 6, box(left=br,right=br) * 4)
+                    self.addstr(y * 2 + 4, x * 5 + 5, box(left=bl,right=br,up=bl or br))
 
                 # horizontal lines
-                self.addstr(y * 2 + 2, x * 5 + 1, Box.left(tl or bl).right(tl or bl) * 4)
-                self.addstr(y * 2 + 2, x * 5 + 6, Box.left(tr or br).right(tr or br) * 4)
+                self.addstr(y * 2 + 2, x * 5 + 1, box(left=tl or bl,right=tl or bl) * 4)
+                self.addstr(y * 2 + 2, x * 5 + 6, box(left=tr or br,right=tr or br) * 4)
 
                 # vertical lines
-                self.addstr(y * 2 + 1, x * 5 + 5, Box.up(tl or tr).down(tl or tr))
-                self.addstr(y * 2 + 3, x * 5 + 5, Box.up(bl or br).down(bl or br))
+                self.addstr(y * 2 + 1, x * 5 + 5, box(up=tl or tr,down=tl or tr))
+                self.addstr(y * 2 + 3, x * 5 + 5, box(up=bl or br,down=bl or br))
 
                 # the center of the cluster
-                self.addstr(y * 2 + 2, x * 5 + 5, Box(tl or tr, bl or br, tl or bl, tr or br))
+                self.addstr(y * 2 + 2, x * 5 + 5, box(tl or tr, bl or br, tl or bl, tr or br))
 
         tl = not self.board[0][0].is_revealed  # top left
         tr = not self.board[0][-1].is_revealed  # top right
@@ -422,10 +422,10 @@ class GridWidget(Widget):
         br = not self.board[-1][-1].is_revealed  # bottom right
 
         # add the corners of the board
-        self.addstr(0, 0, Box.right(tl).down(tl))
-        self.addstr(0, width - 1, Box.left(tr).down(tr))
-        self.addstr(height - 1, 0, Box.up(bl).right(bl))
-        self.addstr(height - 1, width - 1, Box.up(br).left(br))
+        self.addstr(0, 0, box(right=tl,down=tl))
+        self.addstr(0, width - 1, box(left=tr,down=tr))
+        self.addstr(height - 1, 0, box(up=bl,right=bl))
+        self.addstr(height - 1, width - 1, box(up=br,left=br))
 
         if self.root.keyboard_mode:
             self.subwidgets[self.selected_cell].highlight(True)
