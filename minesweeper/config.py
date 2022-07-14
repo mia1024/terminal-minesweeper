@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 
 
 class SingletonMeta(type):
@@ -61,6 +62,12 @@ class Config(metaclass = SingletonMeta):
         return max(self.board_height * 2 + 1 + 3 + 4, 16 + 4)
 
 
+force_fps = None
+try:
+    force_fps = int(os.environ.get("MINESWEEPER_FORCE_FPS"))
+except (TypeError, ValueError):
+    pass
+
 config = Config()
 parser = argparse.ArgumentParser(prog = 'minesweeper', add_help = False)
 g = parser.add_argument_group('Options')
@@ -78,9 +85,13 @@ group.add_argument('-c', '--custom', nargs = 3, type = int,
                    metavar = ('WIDTH', 'HEIGHT', 'MINES'),
                    help = 'Set a custom game difficulty.')
 g.add_argument('-d', '--dark-mode', help = 'Enable dark mode.', action = 'store_true')
-g.add_argument('-f', '--framerate', type = int, default = 0,
-               help = 'Cap the framerate. Set to 0 to disable, '
-                      'which is the default.')
+
+if not force_fps:
+    g.add_argument('-f', '--framerate', type = int, default = 0,
+                   help = 'Cap the framerate. Set to 0 to disable, '
+                          'which is the default. If MINESWEEPER_FORCE_FPS env '
+                          'is set, this option will be ignored.')
+
 g.add_argument('--silent-checks', action = 'store_true',
                help = 'Performs the initial system checks quickly and quietly.')
 g.add_argument('--no-animation', action = 'store_true',
@@ -112,8 +123,11 @@ config.debug = args.debug
 config.silent_checks = args.silent_checks or args.quick
 config.show_animation = not (args.no_animation or args.quick)
 config.use_emojis = not args.no_emoji
-config.framerate = args.framerate
 config.dark_mode = bool(args.dark_mode)
+if force_fps:
+    config.framerate = force_fps
+else:
+    config.framerate = args.framerate
 
 if args.intermediate:
     config.board_width = 16
