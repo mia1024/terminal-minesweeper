@@ -847,7 +847,7 @@ class RootWidget(Widget):
         # caps the framerate by postponing rendering
         if config.framerate:
             self.render()
-            curses.napms(floor(1/config.framerate*1000-(time.time()-self.monitor.last_frame)))
+            curses.napms(floor((1/config.framerate-(time.time()-self.monitor.last_frame))*1000))
         else:
             self.render()
             curses.napms(1) # voluntary context switch
