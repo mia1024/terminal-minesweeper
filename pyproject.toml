@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "terminal-minesweeper"
+description = "A pure Python implementation of minesweeper using curses"
+readme = "README.md"
+requires-python = ">=3.6"
+license = { text = "GPL-3.0-only" }
+classifiers = [
+    'Environment :: Console :: Curses',
+    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: Microsoft :: Windows :: Windows 10',
+    'Operating System :: MacOS :: MacOS X',
+    'Programming Language :: Python :: 3',
+    'Topic :: Games/Entertainment'
+]
+
+dependencies = [
+    "windows-curses ; platform_system == 'Windows'"
+]
+version = "0.2.0"
+authors = [{ name = "Mia Celeste", email = "mia@miaceleste.dev" }]
+
+[project.scripts]
+minesweeper = "minesweeper.main:run"
+
+[project.urls]
+Homepage = "https://minesweeper.mia1024.io"
+GitHub = "https://github.com/mia1024/terminal-minesweeper"
+
+[tool.setuptools]
+packages = ["minesweeper"]
