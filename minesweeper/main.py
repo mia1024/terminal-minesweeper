@@ -184,4 +184,5 @@ def run():
         # erase screen and move cursor to top left corner
         print('\033[0;2J\033[0;0H', end = '', flush = True)
         print_slow('Thanks, Python magic. I knew you wouldn\'t fail me ⊂(´・ω・｀⊂)')
+        print_slow('(You may skip this animation with the -q flag next time)',prefix="\033[38;5;244m", suffix="\033[0m",delay=0.0075)
     sys.exit(exit_status)
