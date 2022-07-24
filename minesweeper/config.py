@@ -74,10 +74,10 @@ g = parser.add_argument_group('Options')
 group = g.add_mutually_exclusive_group()
 group.add_argument('-e', '--easy', action = 'store_true',
                    help = 'Set the game difficulty to easy (9x9 board with 10'
-                          ' mines)')
+                          ' mines). This is the default')
 group.add_argument('-i', '--intermediate', action = 'store_true',
                    help = 'Set the game difficulty to intermediate (16x16 board'
-                          ' with 40 mines). This is the default.')
+                          ' with 40 mines).')
 group.add_argument('-h', '--hard', action = 'store_true',
                    help = 'Set the game difficulty to hard (16x30 board with 99'
                           ' mines).')
