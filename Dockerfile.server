@@ -7,11 +7,11 @@ RUN pip install . --compile
 WORKDIR /
 
 RUN rm -rf /media /opt /srv /var
-RUN rm -rf /usr/local/lib/python3.10/site-packages/p*
-RUN rm -rf /usr/local/lib/python3.10/site-packages/s*
-RUN rm -rf /usr/local/lib/python3.10/site-packages/t*
-RUN rm -rf /usr/local/lib/python3.10/site-packages/w*
-RUN rm -rf /minesweeper /usr/bin /bin/* /home /sbin /etc/ssl /etc/apk /root /etc/passwd /etc/shadow /etc/network /tmp
+RUN rm -rf /usr/local/lib/python3.10/site-packages/p*  # pip
+RUN rm -rf /usr/local/lib/python3.10/site-packages/s*  # setuptools
+RUN rm -rf /usr/local/lib/python3.10/site-packages/t*  # terminal-minesweeper
+RUN rm -rf /usr/local/lib/python3.10/site-packages/w*  # wheel
+RUN rm -rf /minesweeper /usr/bin /usr/sbin /usr/share /bin/* /home /sbin /etc/ssl /etc/apk /root /etc/passwd /etc/shadow /etc/network /tmp
 
 COPY --from=clean /bin/sh /bin/sh
 
