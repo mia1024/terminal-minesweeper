@@ -989,6 +989,7 @@ def calc_first_frame(height, width):
 
 def main():
     try:
+        curses.setupterm("xterm-256color")
         stdscr = curses.initscr()
         curses.flushinp()
     except curses.error:

@@ -110,10 +110,6 @@ def run():
         f'or specify a smaller board size.'
     )
 
-    curses.setupterm()
-    check(curses.tigetnum("colors")>=256,"terminal 256 color support","Please make sure your terminal supports 256 color. "
-          "You can potentially fix this error by setting $TERM environment variable to xterm-256color."
-          )
 
     # only import everything after the system checks so we don't get random
     # SyntaxError or NameError for lower python versions
