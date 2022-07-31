@@ -44,7 +44,7 @@ def check(condition: bool, name: str, error_message: str):
             print_slow('FAILED', prefix = '\033[91m', suffix = '\033[0m')
             print_slow(error_message)
             print('\033[37m', end = '')
-            print_slow('Alternatively, you may pass in the --ignore-failure switch.', delay = 0.005)
+            print_slow('\nAlternatively, you may pass in the --ignore-failure switch.', delay = 0.005)
             print_slow('However, you may encounter a curses error if you do so.', delay = 0.005)
             print('\033[0m', end = '')
             sys.exit(1)
@@ -110,10 +110,17 @@ def run():
         f'or specify a smaller board size.'
     )
 
+    curses.setupterm()
+    check(curses.tigetnum("colors")>=256,"terminal 256 color support","Please make sure your terminal supports 256 color. "
+          "You can potentially fix this error by setting $TERM environment variable to xterm-256color."
+          )
+
+    # only import everything after the system checks so we don't get random
+    # SyntaxError or NameError for lower python versions
     from .ui import main, calc_first_frame, FG, BG, UI_COLORS_USED
 
     if config.show_animation:
-        print_slow("Testing terminal color support...",trailing_newline = False)
+        print_slow("Testing terminal color accuracy...",trailing_newline = False)
         for c in UI_COLORS_USED:
             if c!=BG:
                 print_slow(f"{c}",prefix = f"\033[38;5;{c}m\033[48;5;{BG}m",suffix = "\033[0m ",trailing_newline = False)
@@ -125,10 +132,6 @@ def run():
         print_slow(r'Printing a window in the hope that it will come into life ◦°˚\(*❛ ‿ ❛)/˚°◦')
         print_slow('Please lend me your power, Python magic!\nBalabala pew (∩^o^)⊃━☆゜.*', trailing_newline = False)
 
-    # only import everything after the system checks so we don't get random
-    # SyntaxError or NameError for lower python versions
-
-    if config.show_animation:
         # show a start up animation before going into curses for the scrolling effect
         for i, row in enumerate(calc_first_frame(height, width)):
             print()
