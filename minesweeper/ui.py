@@ -945,7 +945,6 @@ def mainloop(win):
 
     signal.signal(signal.SIGINT, lambda signum, frame: root.exit())
     signal.signal(signal.SIGTERM, lambda signum, frame: root.exit())
-    signal.signal(signal.SIGQUIT, lambda signum, frame: root.exit())
     # so it only shuts down after a full frame is rendered
     while True:
         winh, winw = win.getmaxyx()
