@@ -6,13 +6,13 @@
     <title>Terminal Minesweeper</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js"
-            integrity="sha384-ODmDIVzN+pFdexxHEHFBQH3/9/vQ9uori45z4JjnFsRydbmQbmL5t1tQ0culUzyK"
-            crossorigin="anonymous"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oxygen+Mono&family=Source+Sans+Pro&family=Source+Serif+Pro:wght@600&display=swap');
+    </style>
+    <link href="assets/prism.css" rel="stylesheet"/>
 </head>
 <body>
-<div class="container-fluid" style="background-color: #FCF5E5; padding: 2em">
+<div class="container-fluid" style="background-color: #fffbf2; padding: 2em">
     <div class="row">
         <h1 class="text-center fw-bold">Terminal Minesweeper</h1>
     </div>
@@ -21,26 +21,335 @@
             Some people think terminals are not designed for real time gaming. They are wrong.
         </div>
     </div>
-    <div class="row justify-content-center py-4">
+    <div class="row justify-content-center pb-2">
         <img src="gifs/intro.gif" alt="game intro" class="col-md-6 col-sm-8" style="max-height: 40vh; width:auto">
+    </div>
+    <div class="col-md-6 col-sm-8 offset-md-3 offset-sm-2 text-center pb-2">
+        Works on Windows, Linux, macOS, Android<sup>*</sup>, and iOS<sup>*</sup>.
+    </div>
+    <div class="col-md-6 col-sm-8 offset-md-3 offset-sm-2 text-center pb-4" style="font-size: 0.7em">
+        <sup>*</sup> through Terminus using no emoji mode. Stable Internet connection required.
+    </div>
+    <div class="row justify-content-center pb-4">
+        <a href="https://hub.docker.com/r/mia1024/terminal-minesweeper" class="badge-link">
+            <img class="status-badge"
+                 src="https://img.shields.io/docker/image-size/mia1024/terminal-minesweeper/latest?label=Docker"/>
+        </a>
+        <a href="https://spdx.org/licenses/GPL-3.0-only.html" class="badge-link">
+            <img class="status-badge" src="https://img.shields.io/badge/license-GPLv3-purple"/>
+        </a>
+        <a href="https://pypi.org/project/terminal-minesweeper/" class="badge-link">
+            <img class="status-badge" src="https://img.shields.io/badge/python-%E2%89%A53.6-blue"/>
+        </a>
+        <img class="status-badge" src="https://img.shields.io/badge/dependencies-0-green"/>
+        <a href="https://github.com/mia1024/terminal-minesweeper" class="badge-link">
+            <img class="status-badge" style="padding-left: 5px"
+                 src="https://img.shields.io/github/stars/mia1024/terminal-minesweeper?style=social"/>
+        </a>
     </div>
     <div class="row">
         <div class="col-sm-12 col-md-6 offset-md-3">
             <div class="justify-content-around d-flex flex-row">
-                <a class="btn btn-outline-primary">
-                    Download
-                </a>
-                <a class="btn btn-outline-success">
-                    Try online
-                </a>
+                <div>
+                    <a class="btn btn-outline-primary d-inline-block mx-4" href="#download">
+                        Download
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
+<div class="container-fluid" style="background-color:#fff5e0; padding: 2em">
+    <h2 class="text-center fw-bold">Try online</h2>
+    <div class="row">
+        <div class="col-md-6 col-sm-8 offset-md-3 offset-sm-2">
+              <pre><code class="language-bash">ssh demo@minesweeper.mia1024.io
+Password: mines</code></pre>
+        </div>
+        <div class="row justify-content-center pt-1 pb-3">
+            <span style="width: fit-content">Please check the <a href="#compatibilities">terminal compatibility list</a> first</span>
+        </div>
+    </div>
+</div>
+<div class="container-fluid" style="background-color:#fffbf2; padding: 2em">
+    <h2 class="text-center fw-bold">Features</h2>
+    <h3 class="pt-4 pb-1">Comprehensive system check</h3>
+    <div class="row justify-content-center pb-3">
+        <img src="gifs/system_check_demo.gif" alt="game intro" class="col-md-6 col-sm-8"
+             style="max-height: 40vh; width:auto">
+    </div>
+
+    <h3 class="pt-4 pb-1">Cursor support</h3>
+    <div class="row justify-content-center">
+        <img src="gifs/control_demo.gif" alt="game intro" class="col-md-6 col-sm-8"
+             style="max-height: 40vh; width:auto">
+    </div>
+    <div class="row justify-content-center pt-1 pb-3">
+        <span style="width: fit-content">On <a href="#compatibilities">compatible terminals</a> only</span>
+    </div>
+
+    <h3 class="pt-4 pb-1">Keyboard support</h3>
+    <div class="row justify-content-center">
+        <img src="gifs/keyboard_nav_demo.gif" alt="game intro" class="col-md-6 col-sm-8"
+             style="max-height: 40vh; width:auto">
+    </div>
+    <div class="row justify-content-center pt-1 pb-3">
+        Including Vim keybindings
+    </div>
+
+    <h3 class="pt-4 pb-1"><a href="http://www.minesweeper.info/wiki/Chord" style="display: inline">Chord</a> support
+    </h3>
+    <div class="row justify-content-center">
+        <img src="gifs/chord_demo.gif" alt="game intro" class="col-md-6 col-sm-8" style="max-height: 40vh; width:auto">
+    </div>
+    <div class="row justify-content-center pt-1 pb-3">
+        By middle-clicking or pressing [space]
+    </div>
+    <h3 class="pt-4 pb-1">Built-in help page</h3>
+    <div class="row justify-content-center">
+        <img src="gifs/help.png" alt="game intro" class="col-md-6 col-sm-8" style="max-height: 40vh; width:auto">
+    </div>
+    <div class="row justify-content-center pt-1 pb-3">
+        Toggle with [i] (why? because [h] is reserved for vim)
+    </div>
+</div>
+
+
+<div class="container-fluid" style="background-color:#fff5e0; padding: 2em">
+
+    <h2 class="text-center fw-bold">Usage</h2>
+    <div class="row">
+        <div class="col-sm-10 offset-sm-1">
+    <pre><code class="language-">usage: minesweeper [-e | -i | -h | -c WIDTH HEIGHT MINES] [-d] [-f FRAMERATE]
+                   [--silent-checks] [--no-animation] [-q] [--ignore-failures]
+                   [--no-emoji] [--debug] [--help]
+
+Options:
+  -e, --easy            Set the game difficulty to easy (9x9 board with 10
+                        mines)
+  -i, --intermediate    Set the game difficulty to intermediate (16x16 board
+                        with 40 mines). This is the default.
+  -h, --hard            Set the game difficulty to hard (16x30 board with 99
+                        mines).
+  -c WIDTH HEIGHT MINES, --custom WIDTH HEIGHT MINES
+                        Set a custom game difficulty.
+  -d, --dark-mode       Enable dark mode.
+  -f FRAMERATE, --framerate FRAMERATE
+                        Cap the framerate. Set to 0 to disable, which is the
+                        default. If MINESWEEPER_FORCE_FPS env is set, this
+                        option will be ignored.
+  --silent-checks       Performs the initial system checks quickly and
+                        quietly.
+  --no-animation        Skip the startup and closing animations. May cause a
+                        significant screen flicker when the program starts.
+  -q, --quick           A shortcut argument that is the equivalent of
+                        supplying both --silent-checks and --no-animation.
+  --ignore-failures     Ignore all failures in the initial system checks. Not
+                        recommended.
+  --no-emoji            Use unicode characters to replace all the emojis. Note
+                        that all emojis used by this program are from Emoji
+                        v1.0 released in 2015.
+  --debug               Enable debug mode.
+  --help                Show this help message and exit.</code></pre>
+        </div>
+    </div>
+</div>
+<div class="container-fluid" style="background-color:#fffbf2; padding: 2em">
+
+    <h2 class="text-center fw-bold pt-4" id="download">Download</h2>
+    <div class="row">
+        <nav class="col-md-6 col-sm-8 offset-md-3 offset-sm-2">
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <button class="nav-link active" id="download-docker-tab" data-bs-toggle="tab"
+                        data-bs-target="#download-docker"
+                        type="button" role="tab" aria-controls="download-docker" aria-selected="true"> Docker
+                </button>
+                <button class="nav-link" id="download-pip-tab" data-bs-toggle="tab" data-bs-target="#download-pip"
+                        type="button" role="tab" aria-controls="download-pip" aria-selected="false"> pip
+                </button>
+                <button class="nav-link" id="download-git-tab" data-bs-toggle="tab" data-bs-target="#download-git"
+                        type="button" role="tab" aria-controls="download-git" aria-selected="false"> Git
+                </button>
+            </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="download-docker" role="tabpanel"
+                 aria-labelledby="download-docker-tab"
+                 tabindex="0">
+                <div class="col-md-6 col-sm-8 offset-md-3 offset-sm-2">
+<pre><code class="language-bash">docker pull mia1024/terminal-minesweeper:latest
+docker run -it --rm mia1024/terminal-minesweeper
+</code></pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="download-pip" role="tabpanel" aria-labelledby="download-pip-tab"
+                 tabindex="0">
+                <div class="col-md-6 col-sm-8 offset-md-3 offset-sm-2">
+            <pre><code class="language-bash">python3 -m pip install --upgrade terminal-minesweeper
+
+# If you have included Python site packages in your $PATH
+minesweeper
+
+# If not, you can still run it through Python
+python3 -m minesweeper
+            </code></pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="download-git" role="tabpanel" aria-labelledby="download-git-tab"
+                 tabindex="0">
+                <div class="col-md-6 col-sm-8 offset-md-3 offset-sm-2">
+<pre><code class="language-bash"># Install
+git clone https://github.com/mia1024/terminal-minesweeper.git
+cd terminal-minesweeper
+python3 -m pip install .
+
+# Run program
+python3 -m pip minesweeper
+</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid" style="background-color:#fff5e0; padding: 2em">
+    <h2 id="compatibilities">Terminal Compatibilities</h2>
+    <div class="d-flex vw-100 justify-content-center">
+        <div style="overflow-x:auto">
+            <table class="table table-bordered" style="width: fit-content">
+                <thead>
+                <tr>
+                    <th>Fully compatible</th>
+                    <th>Partially compatible</th>
+                    <th>Incompatible</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        Kitty
+                    </td>
+                    <td>
+                        macOS Terminal <sup>[4]</sup>
+                    </td>
+                    <td>
+                        cmd.exe
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Terminator
+                    </td>
+                    <td>
+                        iTerm2  <sup>[2]</sup>
+                    </td>
+                    <td>
+                        powershell.exe
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Konsole
+                    </td>
+                    <td>
+                        Windows Terminal (Powershell) <sup>[1][3]</sup>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        GNOME Terminal
+                    </td>
+                    <td>
+                        Terminus <sup>[2]</sup>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Windows Terminal (WSL2)
+                    </td>
+                    <td>
+                        VSCode <sup>[3]</sup>
+                    </td>
+                </tr>
+                <tr>
+                    <td>tmux</td>
+                    <td>
+                        JetBrains IDE <sup>[2][3]</sup>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        GNU Screen <sup>[5]</sup>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="d-block">
+        <div class="row" >
+            <span class="col-md-6 col-sm-8 offset-md-3 offset-sm-2">
+                [1] Right click is not passed to the game (you use [F] instead)
+            </span>
+            <span class="col-md-6 col-sm-8 offset-md-3 offset-sm-2">
+                [2] Can only be played under no-emoji mode (toggle with [T] or use command line flag)
+            </span>
+            <span class="col-md-6 col-sm-8 offset-md-3 offset-sm-2">
+                [3] Mouse hover is not passed to the game, but button clicks still work
+            </span>
+            <span class="col-md-6 col-sm-8 offset-md-3 offset-sm-2">
+                [4] On trackpad, you have to double-click to get the game to recognize it
+            </span>
+        </div>
+    </div>
+</div>
+<div>
+    <div style="text-align: center; width: 100vw; margin-top: 2em; margin-bottom: 2em;">
+        Copyright &copy; 2020-2022 Mia Celeste
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js"
+        integrity="sha384-ODmDIVzN+pFdexxHEHFBQH3/9/vQ9uori45z4JjnFsRydbmQbmL5t1tQ0culUzyK"
+        crossorigin="anonymous"></script>
+<script src="assets/prism.js"></script>
 </body>
 <style>
-    body{
+    body {
         font-family: "Source Sans Pro", sans-serif;
+    }
+
+    .status-badge {
+        height: 1.5em;
+        padding: 0;
+        width: auto;
+    }
+
+    .badge-link {
+        display: inline-block;
+        padding: 0 5px 0 0;
+        width: fit-content;
+    }
+
+    pre code {
+        font-family: 'Oxygen Mono', monospace !important;
+    }
+
+    h2 {
+        font-weight: 600;
+        font-family: 'Source Serif Pro', serif;
+    }
+
+    h1, h2, h3 {
+        text-align: center;
+    }
+
+    a {
+        color: inherit;
+    }
+
+    span {
+        width: fit-content;
     }
 </style>
 </html>
