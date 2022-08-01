@@ -19,12 +19,14 @@ if config.dark_mode:
     UI_HIGHLIGHT_FG = FG
     UI_HIGHLIGHT_BG = 242
     UI_ALT_HIGHLIGHT_BG = 203
+    UI_ERROR_FG = 196
 else:
     FG = 232
     BG = 231
     UI_HIGHLIGHT_FG = FG
     UI_HIGHLIGHT_BG = 250
     UI_ALT_HIGHLIGHT_BG = 203
+    UI_ERROR_FG = 196
 
 # ANSI color code for each mine value
 if config.dark_mode:
@@ -32,14 +34,15 @@ if config.dark_mode:
 else:
     VALUES = [253, 21, 41, 160, 165, 208, 69, 92, 239]
 
-UI_COLORS_USED = [FG, BG, UI_HIGHLIGHT_FG, UI_HIGHLIGHT_BG, UI_ALT_HIGHLIGHT_BG]
+UI_COLORS_USED = [FG, BG, UI_HIGHLIGHT_FG, UI_HIGHLIGHT_BG, UI_ALT_HIGHLIGHT_BG, UI_ERROR_FG]
 UI_COLORS_USED.extend(VALUES)
 UI_COLORS_USED = sorted(list(set(UI_COLORS_USED)))  # remove duplicate and sort
 
 DEFAULT = 1
 UI_HIGHLIGHT = 2
 UI_ALT_HIGHLIGHT = 3
-SYSTEM_DEFAULT = 127
+UI_ERROR = 4
+SYSTEM_DEFAULT = 5
 
 # a simple wrapper around the mouse events for easier bitmask processing
 MouseEvent = IntFlag('MouseEvent',
@@ -58,8 +61,10 @@ def pad_window(line, width, center = False):
 
 def cell_color(value, highlight):
     """Calculates the color index of the given cell value and highlight state"""
-    return (value << 4) | (highlight << 3) | 0b111
+
+    # 3 bits = 8 colors are reserved for the UI
     # at value = 0, highlight = 0 this will start from 7
+    return (value << 4) | (highlight << 3) | 0b111
 
 
 def debug_print(*args, **kwargs):
@@ -603,7 +608,8 @@ class HelpWidget(Widget):
             self.parent.force_rerender = True
 
     def mouse_event(self, y, x, mouse):
-        if not config.use_emojis: return
+        if not config.use_emojis:
+            return
         if MouseEvent.BUTTON1_RELEASED in mouse:
             if not self.is_active:
                 if y == 0 and x == 0:
@@ -758,10 +764,15 @@ class RootWidget(Widget):
         """
         all_events_processed = False
         while not all_events_processed:
+            winh, winw = self.window.getmaxyx()
             ch = self.window.getch()
-
+            if ch == curses.KEY_RESIZE:
+                char = '\0'
+                self.force_rerender = True
+                etype = 'other'
+                args = (char,)
             # handles mouse input
-            if ch == curses.KEY_MOUSE:
+            elif ch == curses.KEY_MOUSE:
                 try:
                     _, mouse_x, mouse_y, z, mouse_button = curses.getmouse()
                     mouse = MouseEvent(mouse_button)
@@ -817,15 +828,8 @@ class RootWidget(Widget):
                 etype = 'mouse'
                 args = (self.mouse_y, self.mouse_x, mouse)
             else:
-                # check resize
-                if ch == curses.KEY_RESIZE:
-                    winh, winw = self.window.getmaxyx()
-                    if not config.ignore_failures and (winh < config.min_height or winw < config.min_width):
-                        raise InsufficientScreenSpace
-                    char = '\0'
-                    self.force_rerender = True
                 # keyboard input
-                elif ch == -1 or self.button2_pressed:
+                if ch == -1 or self.button2_pressed:
                     # block middle button paste on linux
                     char = '\0'
                     all_events_processed = True
@@ -838,10 +842,15 @@ class RootWidget(Widget):
                 args = (char,)
 
             try:
+                if winh < config.min_height or winw < config.min_width:
+                    # ignore all events until size is fixed
+                    continue
                 if etype == 'keyboard' and char != '\0':
                     self.dispatch_event('keyboard', *args)
                 elif etype == 'mouse':
                     self.dispatch_event('mouse', *args)
+                elif etype == "other":
+                    pass
                 elif not self.keyboard_mode:
                     # hover
                     self.dispatch_event('mouse', self.mouse_y, self.mouse_x, MouseEvent(0))
@@ -861,42 +870,55 @@ class RootWidget(Widget):
             curses.napms(1)  # voluntary context switch
 
     def render(self):
-        """renders the entire window{"""
+        """renders the entire window"""
 
         self.frame_count += 1
-        if not self.help.is_active:
-            # fps also counts rendering time
-            # pause fps while help is active
-            self.monitor.tick()
-
-        # populate widgets
-        self.fps.set_fps(self.monitor.fps)
-        self.flags.set_flag_counts(config.mine_count - self.board.flag_count())
-        if not self.game_over and not self.help.is_active:
-            time_taken = datetime.datetime.now() - self.time_started
-            minute, second = divmod(time_taken.seconds, 60)
-            msec = str(time_taken.microseconds).zfill(2)[:2]
-            self.time_taken = f'{minute:0>2}:{second:0>2}.{msec}'
-            self.timer.set_text(self.time_taken)
-
         self.window.erase()
-        self.calc_widget_locations()
-        try:
-            self.window.addch(self.mouse_y, self.mouse_x, curses.ACS_DIAMOND)
-        except curses.error:
-            pass  # sometimes mouse fly around and that's ok
 
-        # check winning condition
-        if not self.game_over and self.board.check_win():
-            self.status.status = '😎'
-            self.game_over = True
-            self.board.reveal_all()
+        winh, winw = self.window.getmaxyx()
+        if winh < config.min_height or winw < config.min_width:
+            self.addstr(3, 3, "Insufficient screen space", curses.color_pair(UI_ERROR))
+            if winh < config.min_height:
+                self.addstr(4, 3, f"{config.min_height - winh} more rows required", curses.color_pair(UI_ERROR))
+            if winw < config.min_width:
+                self.addstr(4 + (winh < config.min_height), 3, f"{config.min_width - winw} more columns required",
+                            curses.color_pair(UI_ERROR))
+            self.addstr(5 + (winh < config.min_height) + (winw<config.min_width), 3, f"Press Ctrl-C to exit",
+                        curses.color_pair(UI_ERROR))
+        else:
+            if not self.help.is_active:
+                # fps also counts rendering time
+                # pause fps while help is active
+                self.monitor.tick()
 
-        for w in self.subwidgets:
-            if self.help.is_active and isinstance(w, GridWidget):
-                # Hide the grid while help is active
-                continue
-            w.render()
+            # populate widgets
+            self.fps.set_fps(self.monitor.fps)
+            self.flags.set_flag_counts(config.mine_count - self.board.flag_count())
+            if not self.game_over and not self.help.is_active:
+                time_taken = datetime.datetime.now() - self.time_started
+                minute, second = divmod(time_taken.seconds, 60)
+                msec = str(time_taken.microseconds).zfill(2)[:2]
+                self.time_taken = f'{minute:0>2}:{second:0>2}.{msec}'
+                self.timer.set_text(self.time_taken)
+
+            self.calc_widget_locations()
+
+            try:
+                self.window.addch(self.mouse_y, self.mouse_x, curses.ACS_DIAMOND)
+            except curses.error:
+                pass  # sometimes mouse fly around and that's ok
+
+            # check winning condition
+            if not self.game_over and self.board.check_win():
+                self.status.status = '😎'
+                self.game_over = True
+                self.board.reveal_all()
+
+            for w in self.subwidgets:
+                if self.help.is_active and isinstance(w, GridWidget):
+                    # Hide the grid while help is active
+                    continue
+                w.render()
 
         # overwrite all other widgets
         self.paint_window()
@@ -1026,6 +1048,7 @@ def main():
         curses.init_pair(DEFAULT, FG, BG)
         curses.init_pair(UI_HIGHLIGHT, UI_HIGHLIGHT_FG, UI_HIGHLIGHT_BG)
         curses.init_pair(UI_ALT_HIGHLIGHT, UI_HIGHLIGHT_FG, UI_ALT_HIGHLIGHT_BG)
+        curses.init_pair(UI_ERROR, UI_ERROR_FG, BG)
         curses.init_pair(SYSTEM_DEFAULT, -1, -1)
         for i in range(9):
             curses.init_pair(cell_color(i, True), VALUES[i], UI_HIGHLIGHT_BG)

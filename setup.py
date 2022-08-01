@@ -5,7 +5,7 @@ setup(
     description = 'A pure Python implementation of minesweeper using curses.',
     long_description = open('README.md').read(),
     long_description_content_type = 'text/markdown',
-    version = "0.2.3",
+    version = "0.2.4",
     author = 'Mia Celeste',
     author_email = 'mia@miaceleste.dev',
     url = 'https://minesweeper.mia1024.io/',
