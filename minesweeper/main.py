@@ -5,6 +5,7 @@ import time
 
 from .config import config
 from .debug import init_print, end_print
+from .__version__ import __version__
 
 
 def print_slow(text: str, trailing_newline = True, prefix = '', suffix = '', delay = 0.015):
@@ -70,7 +71,7 @@ def run():
 
     if not config.silent_checks:
         print('\033[?25l', end = '')  # disable cursor
-        print_slow('Welcome to terminal minesweeper by Mia Celeste')
+        print_slow(f'Welcome to Terminal Minesweeper, version {__version__} by Mia Celeste')
         if len(sys.argv) == 1:
             print()
             print_slow('No option was specified. Using default settings.')

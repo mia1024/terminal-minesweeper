@@ -21,8 +21,9 @@ classifiers = [
 dependencies = [
     "windows-curses ; platform_system == 'Windows'"
 ]
-version = "0.2.1"
+
 authors = [{ name = "Mia Celeste", email = "mia@miaceleste.dev" }]
+dynamic = ["version"]
 
 [project.scripts]
 minesweeper = "minesweeper.main:run"
@@ -33,3 +34,6 @@ GitHub = "https://github.com/mia1024/terminal-minesweeper"
 
 [tool.setuptools]
 packages = ["minesweeper"]
+
+[tool.setuptools.dynamic]
+version = {attr = "minesweeper.__version__"}
