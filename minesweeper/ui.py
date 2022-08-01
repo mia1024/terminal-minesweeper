@@ -448,9 +448,9 @@ class GridWidget(Widget):
         whether the program is in keyboard-only mode
         """
         cell_count = len(self.subwidgets)
-        if key in ('up', 'w', 'j'):
+        if key in ('up', 'w', 'k'):
             self.selected_cell -= self.board.width
-        elif key in ('down', 's', 'k'):
+        elif key in ('down', 's', 'j'):
             self.selected_cell += self.board.width
         elif key in ('left', 'a', 'h'):
             self.selected_cell -= 1
