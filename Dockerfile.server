@@ -6,7 +6,7 @@ COPY . /minesweeper
 RUN pip install . --compile
 WORKDIR /
 
-COPY dockershell.py /
+COPY mineshell.py /
 
 RUN rm -rf /media /opt /srv /var
 RUN rm -rf /usr/local/lib/python3.10/site-packages/p*  # pip
@@ -28,4 +28,4 @@ ENV PATH="/usr/local/bin"
 ENV TERM="xterm-256color"
 ENV MINESWEEPER_FORCE_FPS=30
 
-ENTRYPOINT ["/usr/local/bin/python", "dockershell.py"]
+ENTRYPOINT ["/usr/local/bin/python", "mineshell.py"]

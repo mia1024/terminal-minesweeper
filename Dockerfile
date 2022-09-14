@@ -6,7 +6,7 @@ RUN pip install . --compile
 WORKDIR /
 RUN rm -rf /minesweeper
 
-COPY dockershell.py /
+COPY mineshell.py /
 
 # Remove layers
 FROM scratch
@@ -17,4 +17,4 @@ USER 1000
 ENV PS1="$ "
 ENV TERM="xterm-256color"
 
-ENTRYPOINT ["/usr/local/bin/python", "dockershell.py"]
+ENTRYPOINT ["/usr/local/bin/python", "mineshell.py"]

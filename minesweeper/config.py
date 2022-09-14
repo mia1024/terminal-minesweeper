@@ -30,7 +30,7 @@ class SingletonMeta(type):
             return obj
 
 
-class Config(metaclass = SingletonMeta):
+class Config(metaclass=SingletonMeta):
     """
     A simple class holding all the important game configurations. It's a
     singleton
@@ -69,76 +69,80 @@ except (TypeError, ValueError):
     pass
 
 config = Config()
-parser = argparse.ArgumentParser(prog = 'minesweeper', add_help = False)
+parser = argparse.ArgumentParser(prog='minesweeper', add_help=False)
 g = parser.add_argument_group('Options')
 group = g.add_mutually_exclusive_group()
-group.add_argument('-e', '--easy', action = 'store_true',
-                   help = 'Set the game difficulty to easy (9x9 board with 10'
-                          ' mines). This is the default')
-group.add_argument('-i', '--intermediate', action = 'store_true',
-                   help = 'Set the game difficulty to intermediate (16x16 board'
-                          ' with 40 mines).')
-group.add_argument('-h', '--hard', action = 'store_true',
-                   help = 'Set the game difficulty to hard (16x30 board with 99'
-                          ' mines).')
-group.add_argument('-c', '--custom', nargs = 3, type = int,
-                   metavar = ('WIDTH', 'HEIGHT', 'MINES'),
-                   help = 'Set a custom game difficulty.')
-g.add_argument('-d', '--dark-mode', help = 'Enable dark mode.', action = 'store_true')
+group.add_argument('-e', '--easy', action='store_true',
+                   help='Set the game difficulty to easy (9x9 board with 10'
+                        ' mines). This is the default')
+group.add_argument('-i', '--intermediate', action='store_true',
+                   help='Set the game difficulty to intermediate (16x16 board'
+                        ' with 40 mines).')
+group.add_argument('-h', '--hard', action='store_true',
+                   help='Set the game difficulty to hard (16x30 board with 99'
+                        ' mines).')
+group.add_argument('-c', '--custom', nargs=3, type=int,
+                   metavar=('WIDTH', 'HEIGHT', 'MINES'),
+                   help='Set a custom game difficulty.')
+g.add_argument('-d', '--dark-mode', help='Enable dark mode.', action='store_true')
 
 if not force_fps:
-    g.add_argument('-f', '--framerate', type = int, default = 0,
-                   help = 'Cap the framerate. Set to 0 to disable, '
-                          'which is the default. If MINESWEEPER_FORCE_FPS env '
-                          'is set, this option will be ignored.')
+    g.add_argument('-f', '--framerate', type=int, default=0,
+                   help='Cap the framerate. Set to 0 to disable, '
+                        'which is the default. If MINESWEEPER_FORCE_FPS env '
+                        'is set, this option will be ignored.')
 
-g.add_argument('--silent-checks', action = 'store_true',
-               help = 'Performs the initial system checks quickly and quietly.')
-g.add_argument('--no-animation', action = 'store_true',
-               help = 'Skip the startup and closing animations. '
-                      'May cause a significant screen flicker when the program '
-                      'starts.')
-g.add_argument('-q', '--quick', action = 'store_true',
-               help = 'A shortcut argument that is the equivalent of supplying '
-                      'both --silent-checks and --no-animation.')
-g.add_argument('--ignore-failures', action = 'store_true',
-               help = 'Ignore all failures in the initial system checks.'
-                      ' Not recommended.')
-g.add_argument('--no-emoji', action = 'store_true',
-               help = 'Use unicode characters to replace all the emojis. '
-                      'Note that all emojis used by this program are from '
-                      'Emoji v1.0 released in 2015.')
-g.add_argument('--debug', help = 'Enable debug mode.', action = 'store_true')
+g.add_argument('--silent-checks', action='store_true',
+               help='Performs the initial system checks quickly and quietly.')
+g.add_argument('--no-animation', action='store_true',
+               help='Skip the startup and closing animations. '
+                    'May cause a significant screen flicker when the program '
+                    'starts.')
+g.add_argument('-q', '--quick', action='store_true',
+               help='A shortcut argument that is the equivalent of supplying '
+                    'both --silent-checks and --no-animation.')
+g.add_argument('--ignore-failures', action='store_true',
+               help='Ignore all failures in the initial system checks.'
+                    ' Not recommended.')
+g.add_argument('--no-emoji', action='store_true',
+               help='Use unicode characters to replace all the emojis. '
+                    'Note that all emojis used by this program are from '
+                    'Emoji v1.0 released in 2015.')
+g.add_argument('--debug', help='Enable debug mode.', action='store_true')
 
-g.add_argument('--help', action = 'store_true',
-               help = 'Show this help message and exit.')
-args = parser.parse_args()
+g.add_argument('--help', action='store_true',
+               help='Show this help message and exit.')
 
-if args.help:
-    parser.print_help()
-    sys.exit(0)
 
-config.ignore_failures = args.ignore_failures
-config.debug = args.debug
-config.silent_checks = args.silent_checks or args.quick
-config.show_animation = not (args.no_animation or args.quick)
-config.use_emojis = not args.no_emoji
-config.dark_mode = bool(args.dark_mode)
-if force_fps:
-    config.framerate = force_fps
-else:
-    config.framerate = args.framerate
+def init_config(args):
+    if args.help:
+        parser.print_help()
+        sys.exit(0)
 
-if args.intermediate:
-    config.board_width = 16
-    config.board_height = 16
-    config.mine_count = 40
-    config.difficulty = 'intermediate'
-elif args.hard:
-    config.board_width = 30
-    config.board_height = 16
-    config.mine_count = 99
-    config.difficulty = 'hard'
-elif args.custom:
-    config.difficulty = 'custom'
-    config.board_width, config.board_height, config.mine_count = args.custom
+    config.ignore_failures = args.ignore_failures
+    config.debug = args.debug
+    config.silent_checks = args.silent_checks or args.quick
+    config.show_animation = not (args.no_animation or args.quick)
+    config.use_emojis = not args.no_emoji
+    config.dark_mode = bool(args.dark_mode)
+    if force_fps:
+        config.framerate = force_fps
+    else:
+        config.framerate = args.framerate
+
+    if args.intermediate:
+        config.board_width = 16
+        config.board_height = 16
+        config.mine_count = 40
+        config.difficulty = 'intermediate'
+    elif args.hard:
+        config.board_width = 30
+        config.board_height = 16
+        config.mine_count = 99
+        config.difficulty = 'hard'
+    elif args.custom:
+        config.difficulty = 'custom'
+        config.board_width, config.board_height, config.mine_count = args.custom
+
+
+init_config(parser.parse_args())

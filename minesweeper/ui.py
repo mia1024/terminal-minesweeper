@@ -51,7 +51,7 @@ MouseEvent = IntFlag('MouseEvent',
                      )  # trials and errors suggest this is the code for drag
 
 
-def pad_window(line, width, center = False):
+def pad_window(line, width, center=False):
     """Pad the side of a window to a width"""
     if not center:
         return ' │' + line + ' ' * (width - len(line) - 4) + '│ '
@@ -270,7 +270,7 @@ class CellWidget(Widget):
         if not self.root.game_start and not self.root.game_over:
             self.cell.flag()
 
-    def highlight(self, force = False):
+    def highlight(self, force=False):
         """
         highlights self and adds self to the set of highlighted cells
         """
@@ -388,35 +388,35 @@ class GridWidget(Widget):
 
                 # special case for first column
                 if not x:
-                    self.addstr(y * 2 + 1, 0, box(up = tl, down = tl))
-                    self.addstr(y * 2 + 3, 0, box(up = bl, down = bl))
-                    self.addstr(y * 2 + 2, 0, box(up = tl, down = bl, right = tl or bl))
+                    self.addstr(y * 2 + 1, 0, box(up=tl, down=tl))
+                    self.addstr(y * 2 + 3, 0, box(up=bl, down=bl))
+                    self.addstr(y * 2 + 2, 0, box(up=tl, down=bl, right=tl or bl))
 
                 # special case for last column
                 if x == self.board.width - 2:
-                    self.addstr(y * 2 + 1, x * 5 + 10, box(up = tr, down = tr))
-                    self.addstr(y * 2 + 3, x * 5 + 10, box(up = br, down = br))
-                    self.addstr(y * 2 + 2, x * 5 + 10, box(up = tr, down = br, left = tr or br))
+                    self.addstr(y * 2 + 1, x * 5 + 10, box(up=tr, down=tr))
+                    self.addstr(y * 2 + 3, x * 5 + 10, box(up=br, down=br))
+                    self.addstr(y * 2 + 2, x * 5 + 10, box(up=tr, down=br, left=tr or br))
 
                 # special case for first row
                 if not y:
-                    self.addstr(y * 2, x * 5 + 1, box(left = tl, right = tl) * 4)
-                    self.addstr(y * 2, x * 5 + 6, box(left = tr, right = tr) * 4)
-                    self.addstr(y * 2, x * 5 + 5, box(left = tl, right = tr, down = tl or tr))
+                    self.addstr(y * 2, x * 5 + 1, box(left=tl, right=tl) * 4)
+                    self.addstr(y * 2, x * 5 + 6, box(left=tr, right=tr) * 4)
+                    self.addstr(y * 2, x * 5 + 5, box(left=tl, right=tr, down=tl or tr))
 
                 # special case for last row
                 if y == self.board.height - 2:
-                    self.addstr(y * 2 + 4, x * 5 + 1, box(left = bl, right = bl) * 4)
-                    self.addstr(y * 2 + 4, x * 5 + 6, box(left = br, right = br) * 4)
-                    self.addstr(y * 2 + 4, x * 5 + 5, box(left = bl, right = br, up = bl or br))
+                    self.addstr(y * 2 + 4, x * 5 + 1, box(left=bl, right=bl) * 4)
+                    self.addstr(y * 2 + 4, x * 5 + 6, box(left=br, right=br) * 4)
+                    self.addstr(y * 2 + 4, x * 5 + 5, box(left=bl, right=br, up=bl or br))
 
                 # horizontal lines
-                self.addstr(y * 2 + 2, x * 5 + 1, box(left = tl or bl, right = tl or bl) * 4)
-                self.addstr(y * 2 + 2, x * 5 + 6, box(left = tr or br, right = tr or br) * 4)
+                self.addstr(y * 2 + 2, x * 5 + 1, box(left=tl or bl, right=tl or bl) * 4)
+                self.addstr(y * 2 + 2, x * 5 + 6, box(left=tr or br, right=tr or br) * 4)
 
                 # vertical lines
-                self.addstr(y * 2 + 1, x * 5 + 5, box(up = tl or tr, down = tl or tr))
-                self.addstr(y * 2 + 3, x * 5 + 5, box(up = bl or br, down = bl or br))
+                self.addstr(y * 2 + 1, x * 5 + 5, box(up=tl or tr, down=tl or tr))
+                self.addstr(y * 2 + 3, x * 5 + 5, box(up=bl or br, down=bl or br))
 
                 # the center of the cluster
                 self.addstr(y * 2 + 2, x * 5 + 5, box(tl or tr, bl or br, tl or bl, tr or br))
@@ -427,10 +427,10 @@ class GridWidget(Widget):
         br = not self.board[-1][-1].is_revealed  # bottom right
 
         # add the corners of the board
-        self.addstr(0, 0, box(right = tl, down = tl))
-        self.addstr(0, width - 1, box(left = tr, down = tr))
-        self.addstr(height - 1, 0, box(up = bl, right = bl))
-        self.addstr(height - 1, width - 1, box(up = br, left = br))
+        self.addstr(0, 0, box(right=tl, down=tl))
+        self.addstr(0, width - 1, box(left=tr, down=tr))
+        self.addstr(height - 1, 0, box(up=bl, right=bl))
+        self.addstr(height - 1, width - 1, box(up=br, left=br))
 
         if self.root.keyboard_mode:
             self.subwidgets[self.selected_cell].highlight(True)
@@ -834,9 +834,9 @@ class RootWidget(Widget):
                     char = '\0'
                     all_events_processed = True
                 else:
-                    char = {curses.KEY_UP   : 'up',
-                            curses.KEY_DOWN : 'down',
-                            curses.KEY_LEFT : 'left',
+                    char = {curses.KEY_UP: 'up',
+                            curses.KEY_DOWN: 'down',
+                            curses.KEY_LEFT: 'left',
                             curses.KEY_RIGHT: 'right', }.get(ch, chr(ch).lower())
                 etype = 'keyboard'
                 args = (char,)
@@ -883,7 +883,7 @@ class RootWidget(Widget):
             if winw < config.min_width:
                 self.addstr(4 + (winh < config.min_height), 3, f"{config.min_width - winw} more columns required",
                             curses.color_pair(UI_ERROR))
-            self.addstr(5 + (winh < config.min_height) + (winw<config.min_width), 3, f"Press Ctrl-C to exit",
+            self.addstr(5 + (winh < config.min_height) + (winw < config.min_width), 3, f"Press Ctrl-C to exit",
                         curses.color_pair(UI_ERROR))
         else:
             if not self.help.is_active:
@@ -1007,7 +1007,7 @@ def calc_first_frame(height, width):
     frame = []
     line = ' ╭' + '─' * (width - 4) + '╮ '
     frame.append(line)
-    frame.append(pad_window('TERMINAL MINESWEEPER', width, center = True))
+    frame.append(pad_window('TERMINAL MINESWEEPER', width, center=True))
     line = ' ├' + '─' * (width - 4) + '┤ '
     frame.append(line)
     for y in range(height - 4):
@@ -1039,7 +1039,7 @@ def main():
                          )
         curses.mouseinterval(0)  # don't wait for mouse
         curses.curs_set(0)  # invisible cursor
-        print('\033[?1003h', flush = True)
+        print('\033[?1003h', flush=True)
         # enable mouse tracking with the XTERM API
         # https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking
 
@@ -1060,12 +1060,15 @@ def main():
     except InsufficientScreenSpace:
         exit_message = 'Insufficient screen space'
         exit_status = 1
+    except SystemExit:
+        # from signal handlers in mineshell
+        pass
     except:
         exit_message = traceback.format_exc()
         exit_status = 1
     finally:
         # revert the terminal state
-        print('\033[?1003l', flush = True)
+        print('\033[?1003l', flush=True)
         curses.flushinp()
         curses.qiflush()
         stdscr.keypad(False)
