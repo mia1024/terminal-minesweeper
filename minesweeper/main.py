@@ -132,7 +132,7 @@ def run():
         # show a start up animation before going into curses for the scrolling effect
         for i, row in enumerate(calc_first_frame(height, width)):
             print()
-            print_slow(row, delay = max(0.01 / (i + 1), 0.0005), prefix = f'\033[38;5;{FG}m\033[48;5;{BG}m',
+            print_slow(row, delay = max(min(0.01 / (i + 1),1/width), 0.0003), prefix = f'\033[38;5;{FG}m\033[48;5;{BG}m',
                        suffix = '\033[0m',
                        trailing_newline = False)
             # speeding up so the user doesn't get too bored
@@ -179,7 +179,7 @@ def run():
             for x in range(width):
                 print(f'\r\033[38;5;{FG}m\033[48;5;{BG}m' + frames[height - y - 1][:width - x - 1] + '\033[0m' + ' ' * (
                         x + 1), end = '', flush = True)
-                time.sleep(max(0.01 / (height - y), 0.0005))
+                time.sleep(max(min(0.01 / (height - y),1/width), 0.0003))
             print('\033[F', end = '', flush = True)
         # erase screen and move cursor to top left corner
         print('\033[0;2J\033[0;0H', end = '', flush = True)
