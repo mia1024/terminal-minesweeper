@@ -26,6 +26,6 @@ USER 65534
 ENV PS1="$ "
 ENV PATH="/usr/local/bin"
 ENV TERM="xterm-256color"
-ENV MINESWEEPER_FORCE_FPS=30
+ENV MINESWEEPER_FORCE_FPS=60
 
 ENTRYPOINT ["/usr/local/bin/python", "mineshell.py"]
