@@ -29,7 +29,11 @@ signal.signal(signal.SIGHUP,exit_handle)
 signal.signal(signal.SIGTERM, exit_handle)
 
 while True:
-    args=shlex.split(input("$ "))
+    try:
+        args=shlex.split(input("$ "))
+    except EOFError:
+        print()
+        sys.exit(0)
     if not args:
         continue
     if args[0] == "exit":
