@@ -45,6 +45,7 @@ def completer(i, s):
 
 
 readline.set_completer(completer)
+readline.add_history("minesweeper")
 readline.parse_and_bind("tab: complete")
 readline.set_completer_delims(" ")
 
@@ -66,5 +67,8 @@ while True:
             config.init_config(config.parser.parse_args(args[1:]))
         except SystemExit:
             continue
+        try:
+            main.run()
+        except SystemExit:
+            pass
 
-        main.run()
